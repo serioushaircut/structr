@@ -622,12 +622,14 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	}
 
+	@Override
 	public Long getLongProperty(final PropertyKey propertyKey) {
 
 		return (getLongProperty(propertyKey.name()));
 
 	}
 
+	@Override
 	public Long getLongProperty(final String key) {
 
 		Object propertyValue = getProperty(key);

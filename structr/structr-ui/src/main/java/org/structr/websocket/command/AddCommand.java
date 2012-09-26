@@ -21,6 +21,7 @@
 
 package org.structr.websocket.command;
 
+import java.util.HashMap;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -65,14 +66,20 @@ public class AddCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
+		final Map<String, Object> nodeData    = webSocketData.getNodeData();
+		String nodeToAddId                    = (String) nodeData.get("id");
+		String childContent                   = (String) nodeData.get("childContent");
+		//final Map<String, Object> relData     = webSocketData.getRelData();
+		final Map<String, Object> relData = new HashMap<String, Object>();
+		final Long numberOfNodes              = Long.parseLong((String) nodeData.get("numberOfNodes"));
 
-		// create static relationship
-		final Map<String, Object> nodeData = webSocketData.getNodeData();
-		String nodeToAddId                 = (String) nodeData.get("id");
-		String childContent                = (String) nodeData.get("childContent");
-		final Map<String, Object> relData  = webSocketData.getRelData();
-		String parentId                    = webSocketData.getId();
-		boolean newNodeCreated             = false;
+		String parentId                       = webSocketData.getId();
+		
+		// tree address of the target node (the element the node to add was dropped onto)
+		String treeAddress              = (String) nodeData.get("treeAddress");
+		
+		// tree address of the source parent node (the element an existing node was dragged from)
+		String oldParentTreeAddress              = (String) nodeData.get("oldParentTreeAddress");
 
 		if (parentId != null) {
 
@@ -99,7 +106,6 @@ public class AddCommand extends AbstractCommand {
 
 					// create node in transaction
 					nodeToAdd      = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(transaction);
-					newNodeCreated = true;
 				} catch (FrameworkException fex) {
 
 					logger.log(Level.WARNING, "Could not create node.", fex);
@@ -108,11 +114,11 @@ public class AddCommand extends AbstractCommand {
 				}
 
 			}
-
+			
 			if ((nodeToAdd != null) && (parentNode != null)) {
 
-				String originalPageId = (String) nodeData.get("sourcePageId");
-				String newPageId      = (String) nodeData.get("targetPageId");
+				//String oldParentTreeAddress = (String) nodeData.get("sourcePageId");
+				//String newPageId      = (String) nodeData.get("targetPageId");
 				RelationClass rel     = EntityContext.getRelationClass(parentNode.getClass(), nodeToAdd.getClass());
 
 				if (rel != null) {
@@ -120,12 +126,12 @@ public class AddCommand extends AbstractCommand {
 					try {
 
 						AbstractRelationship existingRel = null;
-						long maxPos                      = 0;
+						long maxPos                      = numberOfNodes-1;
 
 						// Search for an existing relationship between the node to add and the parent
-						for (AbstractRelationship r : parentNode.getOutgoingRelationships(RelType.CONTAINS)) {
+						for (AbstractRelationship r : nodeToAdd.getIncomingRelationships(RelType.CONTAINS)) {
 
-							if (r.getEndNode().equals(nodeToAdd) && r.getLongProperty(originalPageId) != null) {
+							if (r.getStartNode().equals(parentNode) && r.getLongProperty(oldParentTreeAddress) != null) {
 
 								existingRel = r;
 
@@ -136,19 +142,24 @@ public class AddCommand extends AbstractCommand {
 
 							}
 
-							Long pos = r.getLongProperty(newPageId);
+							if (treeAddress != null) {
 
-							if (pos != null) {
+								Long pos = r.getLongProperty(treeAddress);
 
-								maxPos = Math.max(pos, maxPos);
+								if (pos != null) {
+
+									maxPos = Math.max(pos, maxPos);
+								}
+
 							}
 
 						}
 
+						
 						if (existingRel != null) {
 
-							existingRel.setProperty(newPageId, Long.parseLong((String) relData.get(newPageId)));
-							logger.log(Level.INFO, "Tagging relationship with pageId {0} and position {1}", new Object[] { newPageId, maxPos + 1 });
+							existingRel.setProperty(treeAddress, maxPos+1);
+							logger.log(Level.INFO, "Tagging relationship with tree address {0} and position {1}", new Object[] { treeAddress, maxPos + 1 });
 
 						} else {
 
@@ -160,19 +171,23 @@ public class AddCommand extends AbstractCommand {
 
 							// A new node was created, no relationship exists,
 							// so we create a new one.
-							// overwrite with new position
-							relData.put(newPageId, maxPos + 1);
+							if (treeAddress != null) {
+
+								// overwrite with new position
+								relData.put(treeAddress, maxPos + 1);
+							}
+
 							rel.createRelationship(securityContext, parentNode, nodeToAdd, relData);
 							logger.log(Level.INFO, "Created new relationship between parent node {0}, added node {1} ({2})", new Object[] { parentNode.getUuid(),
 								nodeToAdd.getUuid(), relData });
 						}
 
 						// set page ID on copied branch
-						if ((originalPageId != null) && (newPageId != null) && !originalPageId.equals(newPageId)) {
+						if ((oldParentTreeAddress != null) && (treeAddress != null) && !oldParentTreeAddress.equals(treeAddress)) {
 
-							logger.log(Level.INFO, "Tagging branch of added node {0}: originalPageId: {1}, newPageId: {2}", new Object[] { nodeToAdd.getUuid(),
-								originalPageId, newPageId });
-							RelationshipHelper.tagOutgoingRelsWithPageId(nodeToAdd, nodeToAdd, originalPageId, newPageId);
+							logger.log(Level.INFO, "Tagging branch of added node {0}: originalPageId: {1}, treeAddress: {2}", new Object[] { nodeToAdd.getUuid(),
+								oldParentTreeAddress, treeAddress });
+							RelationshipHelper.tagOutgoingRelsWithPageId(nodeToAdd, nodeToAdd, oldParentTreeAddress, treeAddress);
 
 						}
 
@@ -221,13 +236,13 @@ public class AddCommand extends AbstractCommand {
 						try {
 
 							// New content node is at position 0!!
-							relData.put(newPageId, 0L);
+							relData.put(treeAddress, 0L);
 							rel.createRelationship(securityContext, nodeToAdd, contentNode, relData);
 
 							// set page ID on copied branch
-							if ((originalPageId != null) && (newPageId != null) && !originalPageId.equals(newPageId)) {
+							if ((oldParentTreeAddress != null) && (treeAddress != null) && !oldParentTreeAddress.equals(treeAddress)) {
 
-								RelationshipHelper.tagOutgoingRelsWithPageId(contentNode, contentNode, originalPageId, newPageId);
+								RelationshipHelper.tagOutgoingRelsWithPageId(contentNode, contentNode, oldParentTreeAddress, treeAddress);
 							}
 						} catch (Throwable t) {
 

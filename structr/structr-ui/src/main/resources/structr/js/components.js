@@ -88,7 +88,7 @@ var _Components = {
         
         if (!parent) return false;
         
-        var parentPath = getElementPath(parent);
+        var parentPath = getTreeAddress(parent);
         
         var id = parentPath + '_' + parent.children('.node').length;
         

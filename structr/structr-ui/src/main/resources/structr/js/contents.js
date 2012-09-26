@@ -90,7 +90,7 @@ var _Contents = {
 
         //var nameOrContent = content.content ? content.content : content.name;
         
-        var parentPath = getElementPath(parent);
+        var parentPath = getTreeAddress(parent);
         var id = parentPath + '_' + parent.children('.node').length;
         
         parent.append('<div id="_' + id + '" class="node content ' + content.id + '_">'

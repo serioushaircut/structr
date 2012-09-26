@@ -112,7 +112,7 @@ var _Entities = {
         } else if (entity.type == 'Component') {
 
             lastAppendedObj = _Pages.appendElementElement(entity, parentId, componentId, pageId, true, true, treeAddress);
-            expand = isExpanded(getElementPath(lastAppendedObj));
+            expand = isExpanded(getTreeAddress(lastAppendedObj));
 
         } else if (entity.type == 'Content') {
 
@@ -147,14 +147,14 @@ var _Entities = {
 
             if (debug) console.log('Entity: ', entity);
             lastAppendedObj = _Pages.appendElementElement(entity, parentId, componentId, pageId, add, hasChildren, treeAddress);
-            expand = isExpanded(getElementPath(lastAppendedObj));
+            expand = isExpanded(getTreeAddress(lastAppendedObj));
         }
 
         if (debug) console.log('lastAppendedObj', lastAppendedObj);
 
         if (lastAppendedObj) {
             
-            var t = getElementPath(lastAppendedObj);
+            var t = getTreeAddress(lastAppendedObj);
             if (debug) console.log(t);
             
             if (expand) {
@@ -195,7 +195,7 @@ var _Entities = {
 
     listContainingNodes : function(entity, node) {
 
-        if (debug) console.log('listContainingNodes', entity, getElementPath(node));
+        console.log('listContainingNodes', entity, getTreeAddress(node));
 
         dialog.empty();
         Structr.dialog('Click on element to remove it from the page tree',
@@ -210,7 +210,7 @@ var _Entities = {
         var headers = {};
         headers['X-StructrSessionToken'] = token;
         if (debug) console.log('headers', headers);
-        if (debug) console.log('showProperties URL: ' + rootUrl + entity.id, headers);
+        console.log('showProperties URL: ' + rootUrl + entity.id, headers);
             
         $.ajax({
             url: rootUrl + entity.id,

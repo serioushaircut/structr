@@ -382,7 +382,7 @@ public class HtmlServlet extends HttpServlet {
 				}
 
 				// store information about UUIDs in path in request for later use in Component
-				request.setAttribute(Component.REQUEST_CONTAINS_UUID_IDENTIFIER, requestUriContainsUuids);
+				request.setAttribute(PageHelper.REQUEST_CONTAINS_UUID_IDENTIFIER, requestUriContainsUuids);
 			}
 			
 			edit = false;
@@ -430,7 +430,6 @@ public class HtmlServlet extends HttpServlet {
 				request.getSession().setAttribute(LAST_GET_URL, request.getPathInfo());
 
 				PrintWriter out            = response.getWriter();
-				String uuid                = page.getStringProperty(AbstractNode.Key.uuid);
 				final StringBuilder buffer = new StringBuilder(8192);
 				
 				List<NodeAttribute> attrs          = new LinkedList<NodeAttribute>();
@@ -451,8 +450,10 @@ public class HtmlServlet extends HttpServlet {
 					out.close();
 
 				} else {
+					// Tree address starts with page's UUID
+					String treeAddress = page.getStringProperty(AbstractNode.Key.uuid);
 					
-					getContent(securityContext, uuid, null, buffer, page, page, 0, false, searchFor, attrs, null, null);
+					getContent(securityContext, treeAddress, null, buffer, page, page, 0, false, searchFor, attrs, null, null);
 
 					String content = buffer.toString();
 					double end     = System.nanoTime();
@@ -523,7 +524,6 @@ public class HtmlServlet extends HttpServlet {
 					try {
 						HttpAuthenticator.writeUnauthorized(response);
 					} catch (IllegalStateException ise) {
-						;
 					}
 
 				} else {
@@ -753,7 +753,7 @@ public class HtmlServlet extends HttpServlet {
 
 	//~--- get methods ----------------------------------------------------
 
-	private void getContent(SecurityContext securityContext, final String pageId, final String componentId, final StringBuilder buffer, final AbstractNode page, final AbstractNode startNode,
+	private void getContent(SecurityContext securityContext, final String treeAddress, final String componentId, final StringBuilder buffer, final AbstractNode page, final AbstractNode startNode,
 				int depth, boolean inBody, final String searchClass, final List<NodeAttribute> attrs, final AbstractNode viewComponent, final Condition condition) {
 
 		String localComponentId    = componentId;
@@ -827,7 +827,7 @@ public class HtmlServlet extends HttpServlet {
 				Content contentNode = (Content) startNode;
 
 				// fetch content with variable replacement
-				content = contentNode.getPropertyWithVariableReplacement(request, page, pageId, componentId, viewComponent, Content.UiKey.content.name());
+				content = contentNode.getPropertyWithVariableReplacement(request, page, treeAddress, componentId, viewComponent, Content.UiKey.content.name());
 
 				// examine content type and apply converter
 				String contentType = contentNode.getStringProperty(Content.UiKey.contentType);
@@ -890,7 +890,7 @@ public class HtmlServlet extends HttpServlet {
 
 						if (depth == 1) {
 
-							buffer.append(" structr_page_id='").append(pageId).append("'");
+							buffer.append(" structr_page_id='").append(treeAddress).append("'");
 
 						}
 
@@ -914,7 +914,7 @@ public class HtmlServlet extends HttpServlet {
 
 							try {
 
-								String value = el.getPropertyWithVariableReplacement(page, pageId, localComponentId, viewComponent, attribute);
+								String value = el.getPropertyWithVariableReplacement(page, treeAddress, localComponentId, viewComponent, attribute);
 
 								if ((value != null) && StringUtils.isNotBlank(value)) {
 
@@ -959,7 +959,7 @@ public class HtmlServlet extends HttpServlet {
 					for (Page resultPage : getResultPages(securityContext, (Page) page)) {
 
 						// recursively render children
-						List<AbstractRelationship> rels = Component.getChildRelationships(request, startNode, pageId, localComponentId);
+						List<AbstractRelationship> rels = PageHelper.getChildRelationships(request, startNode, treeAddress, localComponentId);
 
 						for (AbstractRelationship rel : rels) {
 
@@ -969,7 +969,7 @@ public class HtmlServlet extends HttpServlet {
 
 								if (subNode.isNotDeleted() && subNode.isNotDeleted()) {
 
-									getContent(securityContext, pageId, localComponentId, buffer, page, subNode, depth, inBody, searchClass, attrs, resultPage,
+									getContent(securityContext, PageHelper.expandTreeAddress(treeAddress, rel), localComponentId, buffer, page, subNode, depth, inBody, searchClass, attrs, resultPage,
 										   condition);
 
 								}
@@ -994,7 +994,7 @@ public class HtmlServlet extends HttpServlet {
 				for (GraphObject result : results) {
 
 					// recursively render children
-					List<AbstractRelationship> rels = Component.getChildRelationships(request, startNode, pageId, localComponentId);
+					List<AbstractRelationship> rels = PageHelper.getChildRelationships(request, startNode, treeAddress, localComponentId);
 
 					for (AbstractRelationship rel : rels) {
 
@@ -1004,7 +1004,7 @@ public class HtmlServlet extends HttpServlet {
 
 							if (subNode.isNotDeleted() && subNode.isNotDeleted()) {
 
-								getContent(securityContext, pageId, localComponentId, buffer, page, subNode, depth, inBody, searchClass, attrs, (AbstractNode) result,
+								getContent(securityContext, PageHelper.expandTreeAddress(treeAddress, rel), localComponentId, buffer, page, subNode, depth, inBody, searchClass, attrs, (AbstractNode) result,
 									   condition);
 
 							}
@@ -1016,7 +1016,7 @@ public class HtmlServlet extends HttpServlet {
 			} else if (startNode instanceof Condition) {
 
 				// recursively render children
-				List<AbstractRelationship> rels = Component.getChildRelationships(request, startNode, pageId, localComponentId);
+				List<AbstractRelationship> rels = PageHelper.getChildRelationships(request, startNode, treeAddress, localComponentId);
 				Condition newCondition          = (Condition) startNode;
 
 				for (AbstractRelationship rel : rels) {
@@ -1025,7 +1025,7 @@ public class HtmlServlet extends HttpServlet {
 
 					if (subNode.isNotDeleted() && subNode.isNotDeleted()) {
 
-						getContent(securityContext, pageId, localComponentId, buffer, page, subNode, depth + 1, inBody, searchClass, attrs, viewComponent, newCondition);
+						getContent(securityContext, PageHelper.expandTreeAddress(treeAddress, rel), localComponentId, buffer, page, subNode, depth + 1, inBody, searchClass, attrs, viewComponent, newCondition);
 
 					}
 
@@ -1033,7 +1033,7 @@ public class HtmlServlet extends HttpServlet {
 			} else {
 
 				// recursively render children
-				List<AbstractRelationship> rels = Component.getChildRelationships(request, startNode, pageId, localComponentId);
+				List<AbstractRelationship> rels = PageHelper.getChildRelationships(request, startNode, treeAddress, localComponentId);
 
 				for (AbstractRelationship rel : rels) {
 
@@ -1043,7 +1043,7 @@ public class HtmlServlet extends HttpServlet {
 
 						if (subNode.isNotDeleted() && subNode.isNotDeleted()) {
 
-							getContent(securityContext, pageId, localComponentId, buffer, page, subNode, depth + 1, inBody, searchClass, attrs, viewComponent, condition);
+							getContent(securityContext, PageHelper.expandTreeAddress(treeAddress, rel), localComponentId, buffer, page, subNode, depth + 1, inBody, searchClass, attrs, viewComponent, condition);
 
 						}
 

@@ -198,7 +198,7 @@ var _Elements = {
         if (debug) console.log('appendElementElement parent', parent);
         if (!parent) return false;
         
-        var parentPath = getElementPath(parent);
+        var parentPath = getTreeAddress(parent);
         if (debug) console.log(parentPath);
         
         _Entities.ensureExpanded(parent);

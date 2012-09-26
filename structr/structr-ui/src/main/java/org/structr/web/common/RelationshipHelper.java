@@ -292,9 +292,9 @@ public class RelationshipHelper {
 		}
 	}
 
-	public static void reorderRels(final List<AbstractRelationship> rels, final String pageId) throws FrameworkException {
+	public static void reorderRels(final List<AbstractRelationship> rels, final String treeAddress) throws FrameworkException {
 
-		if (pageId == null) {
+		if (treeAddress == null) {
 
 			return;
 
@@ -302,13 +302,13 @@ public class RelationshipHelper {
 
 		long i = 0;
 
-		Collections.sort(rels, new GraphObjectComparator(pageId, GraphObjectComparator.ASCENDING));
+		Collections.sort(rels, new GraphObjectComparator(treeAddress, GraphObjectComparator.ASCENDING));
 
 		for (AbstractRelationship rel : rels) {
 
 			try {
 
-				rel.setProperty(pageId, i);
+				rel.setProperty(treeAddress, i);
 
 				i++;
 
@@ -323,7 +323,7 @@ public class RelationshipHelper {
 
 	//~--- get methods ----------------------------------------------------
 
-	public static Set<String> getChildrenInPage(final AbstractNode parentNode, final String pageId) {
+	public static Set<String> getChildrenInPage(final AbstractNode parentNode, final String treeAddress) {
 
 		Set<String> nodesWithChildren        = new HashSet<String>();
 		List<AbstractRelationship> childRels = parentNode.getOutgoingRelationships(RelType.CONTAINS);
@@ -332,7 +332,7 @@ public class RelationshipHelper {
 
 			String parentId = parentNode.getUuid();
 
-			if ((pageId == null) || (parentNode instanceof Group) || (parentNode instanceof Folder)) {
+			if ((treeAddress == null) || (parentNode instanceof Group) || (parentNode instanceof Folder)) {
 
 				nodesWithChildren.add(parentId);
 				continue;
@@ -341,9 +341,9 @@ public class RelationshipHelper {
 
 			Long childPos = null;
 
-			if (childRel.getLongProperty(pageId) != null) {
+			if (childRel.getLongProperty(treeAddress) != null) {
 
-				childPos = childRel.getLongProperty(pageId);
+				childPos = childRel.getLongProperty(treeAddress);
 
 			} else {
 
@@ -362,7 +362,7 @@ public class RelationshipHelper {
 		return nodesWithChildren;
 	}
 
-	public static boolean hasChildren(final AbstractNode node, final String pageId) {
+	public static boolean hasChildren(final AbstractNode node, final String treeAddress) {
 
 		List<AbstractRelationship> childRels = node.getOutgoingRelationships(RelType.CONTAINS);
 
@@ -376,9 +376,9 @@ public class RelationshipHelper {
 
 			Long childPos = null;
 
-			if (childRel.getLongProperty(pageId) != null) {
+			if (childRel.getLongProperty(treeAddress) != null) {
 
-				childPos = childRel.getLongProperty(pageId);
+				childPos = childRel.getLongProperty(treeAddress);
 
 			} else {
 

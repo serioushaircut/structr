@@ -787,9 +787,9 @@ var _Pages = {
             drop: function(event, ui) {
                 var self = $(this);
 
-                if (debug) console.log('dropped', event, ui.draggable);
+                console.log('dropped', event, ui.draggable);
                 
-                treeAddress = getElementPath(self);
+                treeAddress = getTreeAddress(self);
                 if (debug) console.log('treeAddress', treeAddress);
                 //addExpandedNode(treeAddress);
                 _Entities.ensureExpanded(self);
@@ -874,7 +874,7 @@ var _Pages = {
                     Structr.modules['files'].unload();
                     _Pages.makeMenuDroppable();
 
-                } else {               
+                } else { 
                     if (!contentId) {
                         tag = $(ui.draggable).text();
 
@@ -928,8 +928,17 @@ var _Pages = {
                     nodeData.sourcePageId = sourcePageId;
                 }
 
+                var oldParent = ui.draggable.parent();
+                
+                console.log('remove from tree address', getTreeAddress(oldParent));
+                nodeData.treeAddress = treeAddress;
+                nodeData.oldParentTreeAddress = getTreeAddress(oldParent);
+                nodeData.numberOfNodes = p;
+
                 if (debug) console.log('drop event in appendElementElement', elementId, nodeData, relData);
                 Command.createAndAdd(elementId, nodeData, relData);
+                console.log("Command.move", elementId, nodeData, relData, relData);
+                //Command.move(elementId, nodeData, relData, relData);
             }
         });
 

@@ -21,12 +21,15 @@
 
 package org.structr.websocket.command;
 
+import org.apache.commons.lang.StringUtils;
+
 import org.neo4j.graphdb.Direction;
 
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
+import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -37,6 +40,7 @@ import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.web.common.RelationshipHelper;
+import org.structr.web.entity.Element;
 import org.structr.web.entity.Page;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -47,8 +51,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
-import org.apache.commons.lang.StringUtils;
-import org.structr.core.Result;
+import java.util.Set;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -63,98 +66,77 @@ public class RemoveCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
+		final Command deleteRel               = Services.command(securityContext, DeleteRelationshipCommand.class);
+		String id                             = webSocketData.getId();
 
-		// create static relationship
-		String id                = webSocketData.getId();
-		String parentId          = (String) webSocketData.getNodeData().get("id");
-		//final String componentId = (String) webSocketData.getNodeData().get("componentId");
+		// String parentId          = (String) webSocketData.getNodeData().get("id");
+		// final String componentId = (String) webSocketData.getNodeData().get("componentId");
 		final String treeAddress = (String) webSocketData.getNodeData().get("treeAddress");
-		final String pageId;
-		String position;
-		
-		if (StringUtils.isNotBlank(treeAddress)) {
-			pageId		= treeAddress.substring(0, 32);
-			position	= StringUtils.substringAfterLast(treeAddress, "_");
-		} else {
-			pageId		= (String) webSocketData.getNodeData().get("pageId");
-			position        = (String) webSocketData.getNodeData().get("position");
-		}
 
 		if (id != null) {
 
 			final AbstractNode nodeToRemove = getNode(id);
-			//final AbstractNode parentNode   = getNode(parentId);
-			final Long pos                  = (position != null)
-							  ? Long.parseLong(position)
-							  : null;
-			
+
 			if (nodeToRemove != null) {
 
 				final List<AbstractRelationship> rels = nodeToRemove.getRelationships(RelType.CONTAINS, Direction.INCOMING);
-				StructrTransaction transaction        = new StructrTransaction() {
 
-					@Override
-					public Object execute() throws FrameworkException {
+				try {
 
-						Command deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
-						boolean hasPageId;
-						List<AbstractRelationship> relsToReorder = new ArrayList<AbstractRelationship>();
+					Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
-						for (AbstractRelationship rel : rels) {
+						@Override
+						public Object execute() throws FrameworkException {
 
-							if (pageId == null || rel.getProperty(pageId) != null) {
+							List<AbstractRelationship> relsToReorder = new ArrayList<AbstractRelationship>();
 
-//                                                              if (rel.getEndNode().equals(nodeToRemove) && ((componentId == null) || componentId.equals(rel.getStringProperty("componentId")))) {
-								if (rel.getEndNode().equals(nodeToRemove)) {
+							// Iterate through all incoming CONTAINS relationships
+							for (AbstractRelationship rel : rels) {
+
+								relsToReorder.add(rel);
+								
+								//String parentTreeAddress = StringUtils.substringBeforeLast(treeAddress, "_");
+
+								// Check if this relationship has a position property for the parent's treeAddress
+ 								if (treeAddress == null || rel.getRelationship().hasProperty(treeAddress)) {
 
 									relsToReorder.remove(rel);
+									
+									Long pos = rel.getLongProperty(treeAddress);
 
 									if (pos == null) {
 
 										deleteRel.execute(rel);
+
 									} else {
 
-										if (pos.equals(rel.getLongProperty(pageId))) {
+										rel.removeProperty(treeAddress);
 
-											rel.removeProperty(pageId);
-											//RelationshipHelper.untagOutgoingRelsFromPageId(nodeToRemove, nodeToRemove, pageId, pageId);
+										// RelationshipHelper.untagOutgoingRelsFromPageId(nodeToRemove, nodeToRemove, pageId, pageId);
+										// If no pageId property is left, remove relationship
+										if (!hasPageIds(securityContext, rel)) {
 
-											hasPageId = hasPageIds(securityContext, rel);
+											deleteRel.execute(rel);
+											relsToReorder.remove(rel);
 
-											// If no pageId property is left, remove relationship
-											if (!hasPageId) {
-
-												deleteRel.execute(rel);
-
-												break;
-
-											}
+											break;
 
 										}
 
 									}
 
-								} else {
-
-									relsToReorder.add(rel);
 								}
+
 							}
+
+							// Re-order relationships
+							RelationshipHelper.reorderRels(relsToReorder, treeAddress);
+
+							return null;
 
 						}
 
-						// Re-order relationships
-						RelationshipHelper.reorderRels(relsToReorder, pageId);
-
-						return null;
-
-					}
-
-				};
-
-				// execute transaction
-				try {
-
-					Services.command(securityContext, TransactionCommand.class).execute(transaction);
+					});
 
 				} catch (FrameworkException fex) {
 
@@ -220,4 +202,5 @@ public class RemoveCommand extends AbstractCommand {
 
 	}
 
+	
 }

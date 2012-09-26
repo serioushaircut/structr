@@ -36,12 +36,13 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.*;
+import org.structr.web.common.PageHelper;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
  * Websocket command to return the children of the given node
- * in the context of the given pageId
+ * in the context of the given tree address
  *
  * @author Axel Morgner
  */
@@ -57,7 +58,7 @@ public class ChildrenCommand extends AbstractCommand {
 			return;
 		}
 
-		String pageId                   = (String) webSocketData.getNodeData().get("pageId");
+		String treeAddress              = (String) webSocketData.getNodeData().get("treeAddress");
 		String componentId              = (String) webSocketData.getNodeData().get("componentId");
 		List<AbstractRelationship> rels = node.getOutgoingRelationships(RelType.CONTAINS);
 		Map<Long, GraphObject> sortMap  = new TreeMap<Long, GraphObject>();
@@ -82,16 +83,16 @@ public class ChildrenCommand extends AbstractCommand {
 
 			}
 
-			if (pageId == null) {
+			if (treeAddress == null) {
 
 				return;
 			}
 
 			Long pos = null;
 
-			if (rel.getLongProperty(pageId) != null) {
+			if (rel.getLongProperty(treeAddress) != null) {
 
-				pos = rel.getLongProperty(pageId);
+				pos = rel.getLongProperty(treeAddress);
 			} else {
 
 				// Try "*"
@@ -106,7 +107,7 @@ public class ChildrenCommand extends AbstractCommand {
 				continue;
 			}
 
-			nodesWithChildren.addAll(RelationshipHelper.getChildrenInPage(endNode, pageId));
+			nodesWithChildren.addAll(RelationshipHelper.getChildrenInPage(endNode, PageHelper.expandTreeAddress(treeAddress, rel)));
 			sortMap.put(pos, endNode);
 
 		}

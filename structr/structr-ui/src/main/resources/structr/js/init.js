@@ -564,7 +564,7 @@ var Structr = {
     }
 };
 
-function getElementPath(element) {
+function getTreeAddress(element) {
     var i=-1;
     return $(element).parents('.node').andSelf().map(function() {
         i++;
