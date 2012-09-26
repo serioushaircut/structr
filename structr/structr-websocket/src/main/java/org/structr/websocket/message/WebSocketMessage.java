@@ -63,6 +63,7 @@ public class WebSocketMessage {
 	private String token                   = null;
 	private String view                    = null;
 	private Set<String> nodesWithChildren  = null;
+	private String treeAddress             = null;
 
 	//~--- methods --------------------------------------------------------
 
@@ -93,6 +94,7 @@ public class WebSocketMessage {
 		newCopy.view               = this.view;
 		newCopy.chunkSize          = this.chunkSize;
 		newCopy.nodesWithChildren  = this.nodesWithChildren;
+		newCopy.treeAddress        = this.treeAddress;
 
 		return newCopy;
 	}
@@ -192,6 +194,10 @@ public class WebSocketMessage {
 
 	public Set<String> getNodesWithChildren() {
 		return nodesWithChildren;
+	}
+
+	public String getTreeAddress() {
+		return treeAddress;
 	}
 
 	//~--- set methods ----------------------------------------------------
@@ -297,5 +303,9 @@ public class WebSocketMessage {
 
 	public void setNodesWithChildren(final Set<String> nodesWithChildren) {
 		this.nodesWithChildren = nodesWithChildren;
+	}
+	
+	public void setTreeAddress(final String treeAddress) {
+		this.treeAddress = treeAddress;
 	}
 }

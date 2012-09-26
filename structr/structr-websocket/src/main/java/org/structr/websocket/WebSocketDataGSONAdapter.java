@@ -41,6 +41,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
@@ -153,6 +154,11 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 		}
 
+		// serialize tree address
+		if (StringUtils.isNotBlank(src.getTreeAddress())) {
+			root.add("treeAddress", new JsonPrimitive(src.getTreeAddress()));
+		}
+		
 		// serialize session valid flag (output only)
 		root.add("sessionValid", new JsonPrimitive(src.isSessionValid()));
 

@@ -39,8 +39,8 @@ import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
+import org.structr.web.common.PageHelper;
 import org.structr.web.common.RelationshipHelper;
-import org.structr.web.entity.Element;
 import org.structr.web.entity.Page;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -51,7 +51,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Set;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -71,6 +70,7 @@ public class RemoveCommand extends AbstractCommand {
 
 		// String parentId          = (String) webSocketData.getNodeData().get("id");
 		// final String componentId = (String) webSocketData.getNodeData().get("componentId");
+		// The tree address of the node to remove
 		final String treeAddress = (String) webSocketData.getNodeData().get("treeAddress");
 
 		if (id != null) {
@@ -89,32 +89,30 @@ public class RemoveCommand extends AbstractCommand {
 						public Object execute() throws FrameworkException {
 
 							List<AbstractRelationship> relsToReorder = new ArrayList<AbstractRelationship>();
+							String parentTreeAddress                 = StringUtils.substringBeforeLast(treeAddress, "_");
 
 							// Iterate through all incoming CONTAINS relationships
 							for (AbstractRelationship rel : rels) {
 
 								relsToReorder.add(rel);
-								
-								//String parentTreeAddress = StringUtils.substringBeforeLast(treeAddress, "_");
 
 								// Check if this relationship has a position property for the parent's treeAddress
- 								if (treeAddress == null || rel.getRelationship().hasProperty(treeAddress)) {
+								if (treeAddress == null || rel.getRelationship().hasProperty(parentTreeAddress)) {
 
 									relsToReorder.remove(rel);
-									
-									Long pos = rel.getLongProperty(treeAddress);
+
+									Long pos = rel.getLongProperty(parentTreeAddress);
 
 									if (pos == null) {
 
 										deleteRel.execute(rel);
-
 									} else {
 
-										rel.removeProperty(treeAddress);
+										rel.removeProperty(parentTreeAddress);
 
 										// RelationshipHelper.untagOutgoingRelsFromPageId(nodeToRemove, nodeToRemove, pageId, pageId);
 										// If no pageId property is left, remove relationship
-										if (!hasPageIds(securityContext, rel)) {
+										if (!hasTreeAdresses(securityContext, rel)) {
 
 											deleteRel.execute(rel);
 											relsToReorder.remove(rel);
@@ -130,13 +128,14 @@ public class RemoveCommand extends AbstractCommand {
 							}
 
 							// Re-order relationships
-							RelationshipHelper.reorderRels(relsToReorder, treeAddress);
+							RelationshipHelper.reorderRels(relsToReorder, parentTreeAddress);
 
 							return null;
 
 						}
 
 					});
+					webSocketData.setTreeAddress(treeAddress);
 
 				} catch (FrameworkException fex) {
 
@@ -165,7 +164,7 @@ public class RemoveCommand extends AbstractCommand {
 
 	}
 
-	private boolean hasPageIds(final SecurityContext securityContext, final AbstractRelationship rel) throws FrameworkException {
+	private boolean hasTreeAdresses(final SecurityContext securityContext, final AbstractRelationship rel) throws FrameworkException {
 
 		Command searchNode = Services.command(securityContext, SearchNodeCommand.class);
 		long count         = 0;
@@ -175,13 +174,14 @@ public class RemoveCommand extends AbstractCommand {
 			String key = (String) entry.getKey();
 
 			// Object val = entry.getValue();
-			// Check if key is a node id (UUID format)
-			if (key.matches("[a-zA-Z0-9]{32}")) {
+			// Check if key is a valid tree address (UUID format)
+			if (PageHelper.isTreeAddress(key)) {
 
+				String pageId               = PageHelper.getPageIdFromTreeAddress(key);
 				List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
 				attrs.add(Search.andExactType(Page.class.getSimpleName()));
-				attrs.add(Search.andExactUuid(key));
+				attrs.add(Search.andExactUuid(pageId));
 
 				Result results = (Result) searchNode.execute(null, false, false, attrs);
 
@@ -202,5 +202,4 @@ public class RemoveCommand extends AbstractCommand {
 
 	}
 
-	
 }

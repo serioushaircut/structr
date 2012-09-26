@@ -114,7 +114,7 @@ public class SynchronizationController implements StructrTransactionListener {
 					message = gson.toJson(webSocketData, WebSocketMessage.class);
 				}
 
-				logger.log(Level.FINE, "############################################################ SENDING \n{0}", message);
+				logger.log(Level.INFO, "############################################################ SENDING \n{0}", message);
 
 				try {
 
@@ -347,7 +347,6 @@ public class SynchronizationController implements StructrTransactionListener {
 			WebSocketMessage message = new WebSocketMessage();
 			String startNodeId       = relationship.getCachedStartNodeId();
 			String endNodeId         = relationship.getCachedEndNodeId();
-			String pageId	 = (String) properties.get("pageId");
 
 			if ((startNodeId != null) && (endNodeId != null)) {
 
@@ -355,7 +354,7 @@ public class SynchronizationController implements StructrTransactionListener {
 				message.setGraphObject(relationship);
 				message.setId(startNodeId);
 				message.setNodeData("id", endNodeId);
-				message.setNodeData("pageId", pageId);
+				message.setRelData(properties);
 				messageStack.add(message);
 
 			}

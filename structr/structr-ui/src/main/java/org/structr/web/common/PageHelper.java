@@ -159,7 +159,8 @@ public class PageHelper {
 		for (AbstractRelationship rel : node.getOutgoingRelationships(RelType.CONTAINS)) {
 
 			boolean hasTreeAddress = rel.getProperty(treeAddress) != null;
-			Long positionForPageId = rel.getLongProperty(PageHelper.getPageIdFromTreeAddress(treeAddress));
+			String pageId          = PageHelper.getPageIdFromTreeAddress(treeAddress);
+			Long positionForPageId = rel.getLongProperty(pageId);
 
 			if (!hasTreeAddress && positionForPageId != null) {
 
@@ -172,8 +173,8 @@ public class PageHelper {
 					try {
 
 						rel.setProperty(path, positionForPageId);
-						
-						logger.log(Level.INFO, "Set property {0} for path {1}", new Object[]{positionForPageId, path});
+						rel.removeProperty(pageId);
+						logger.log(Level.INFO, "Set property {0} for path {1} and removed old pageId property {2}", new Object[] { positionForPageId, path, pageId });
 
 					} catch (FrameworkException ex) {
 
@@ -329,4 +330,13 @@ public class PageHelper {
 
 	}
 
+	/**
+	 * Check if given string is a valid tree address
+	 * 
+	 * @param key
+	 * @return 
+	 */
+	public static boolean isTreeAddress(final String key) {
+		return StringUtils.substringBefore(key, "_").matches("[a-zA-Z0-9]{32}");
+	}
 }

@@ -224,7 +224,7 @@ var _Entities = {
                     var cont = $('.' + entity.id + '_', dialog);
 
                     $(data.result.paths).each(function(i, path) {
-                        if (debug) console.log(path);
+                        console.log('path ' + i, path);
 
                         //                        var pageId = path.substring(32);
                         

@@ -54,7 +54,7 @@ function connect() {
         ws.onmessage = function(message) {
 
             var data = $.parseJSON(message.data);
-            if (debug) console.log(data);
+            if (debug) console.log('websocket data', data);
 
             //var msg = $.parseJSON(message);
             var type = data.type;
@@ -235,10 +235,18 @@ function connect() {
 
                 if (debug) console.log(command, data);
 
-                //parent = Structr.node(parentId);
-                entity = Structr.node(entityId, parentId, componentId, pageId, position);
+                var parentTreeAddress = Object.keys(data.relData)[0];
+                var pos = data.relData[parentTreeAddress];
+                if (debug) console.log(parentTreeAddress, pos);
+                
+                treeAddress = parentTreeAddress + '_' + pos;
+                
+                entity = $('#_' + treeAddress);
+                
+                if (!entity) {
+                    entity = Structr.node(entityId, parentId, componentId, pageId, position);
+                }
 
-                //if (debug) console.log(parent);
                 if (debug) console.log(entity);
 
                 //var id = getIdFromClassString(entity.prop('class'));
@@ -249,8 +257,8 @@ function connect() {
 
                 } else if (entity.hasClass('element') || entity.hasClass('content') || entity.hasClass('component')) {
                     
-                    if (debug) console.log('remove element from page', entityId, parentId, componentId, pageId, position);
-                    _Pages.removeFrom(entityId, parentId, componentId, pageId, position);
+                    if (debug) console.log('remove element from page', entityId, parentTreeAddress);
+                    _Pages.removeFrom(entityId, parentTreeAddress);
                     _Pages.reloadPreviews();
 
                 } else if (entity.hasClass('file')) {
@@ -277,7 +285,7 @@ function connect() {
             } else if (command == 'CREATE' || command == 'ADD' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
             //} else if (command == 'CREATE' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
                 
-                if (debug) console.log(command, result, data, data.data);
+                console.log(command, result, data);
                 
                 //var treeAddress = data.data.treeAddress;
 				
@@ -309,12 +317,12 @@ function connect() {
                 if (debug) console.log('UPDATE');
                 
                 var relData = data.relData;
-                if (debug) console.log('relData', relData);
+                console.log('relData', relData);
                 
                 var removedProperties = data.removedProperties;
                 var modifiedProperties = data.modifiedProperties;
                 
-                if (debug) console.log(removedProperties, modifiedProperties);
+                console.log(removedProperties, modifiedProperties);
                 
                 var isRelOp = false;
                 
@@ -331,8 +339,9 @@ function connect() {
                 }
                 
                 if (relData && removedProperties && removedProperties.length) {
-                    if (debug) console.log('removedProperties', removedProperties);
-                    _Pages.removeFrom(relData.endNodeId, relData.startNodeId, null, removedProperties[0]);
+                    console.log('removedProperties', removedProperties);
+                    //_Pages.removeFrom(relData.endNodeId, relData.startNodeId, null, removedProperties[0]);
+                    _Pages.removeFrom(relData.endNodeId, removedProperties[0]);
                     
                 } else if (isRelOp && modifiedProperties && modifiedProperties.length) {
                     
@@ -548,7 +557,7 @@ function send(text) {
 
 function log(msg) {
     if (debug) console.log(msg);
-    $("#log").append("<br>" + msg);
+    $('#log').append('<br>' + msg);
 }
 
 

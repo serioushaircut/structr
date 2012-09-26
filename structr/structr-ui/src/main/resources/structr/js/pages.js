@@ -787,7 +787,7 @@ var _Pages = {
             drop: function(event, ui) {
                 var self = $(this);
 
-                console.log('dropped', event, ui.draggable);
+                if (debug) console.log('dropped', event, ui.draggable);
                 
                 treeAddress = getTreeAddress(self);
                 if (debug) console.log('treeAddress', treeAddress);
@@ -930,14 +930,14 @@ var _Pages = {
 
                 var oldParent = ui.draggable.parent();
                 
-                console.log('remove from tree address', getTreeAddress(oldParent));
+                //console.log('remove from tree address', getTreeAddress(oldParent));
                 nodeData.treeAddress = treeAddress;
                 nodeData.oldParentTreeAddress = getTreeAddress(oldParent);
                 nodeData.numberOfNodes = p;
 
                 if (debug) console.log('drop event in appendElementElement', elementId, nodeData, relData);
                 Command.createAndAdd(elementId, nodeData, relData);
-                console.log("Command.move", elementId, nodeData, relData, relData);
+                //console.log("Command.move", elementId, nodeData, relData, relData);
                 //Command.move(elementId, nodeData, relData, relData);
             }
         });
@@ -1010,16 +1010,14 @@ var _Pages = {
     //Command.removeSourceFromTarget(entityId, parentId, componentId, pageId, pos);
 
     },
+    
+    removeFrom : function(entityId, parentTreeAddress) {
+        console.log('Pages.remove', entityId, parentTreeAddress);
 
-    removeFrom : function(entityId, parentId, componentId, pageId, pos) {
-        if (debug) console.log('Pages.removeFrom', entityId, parentId, componentId, pageId, pos);
+        var parent = Structr.nodeFromTreeAddress(parentTreeAddress);
+        var element = parent.find('.' + entityId + '_');
 
-        var parent = Structr.node(parentId, null, componentId, pageId);
-        var element = Structr.node(entityId, parentId, componentId, pageId, pos);
-
-        //var parent = $(element).parent();
-
-        if (debug) console.log('parent', parent);
+        console.log('element, parent', element, parent);
         
         element.remove();
 
@@ -1028,8 +1026,26 @@ var _Pages = {
         //enable('.delete_icon', parent);
         }
 
-
     },
+
+//    removeFrom : function(entityId, parentId, componentId, pageId, pos) {
+//        if (debug) console.log('Pages.removeFrom', entityId, parentId, componentId, pageId, pos);
+//
+//        var parent = Structr.node(parentId, null, componentId, pageId);
+//        var element = Structr.node(entityId, parentId, componentId, pageId, pos);
+//
+//        //var parent = $(element).parent();
+//
+//        if (debug) console.log('parent', parent);
+//        
+//        element.remove();
+//
+//        if (!Structr.containsNodes(parent)) {
+//            _Entities.removeExpandIcon(parent);
+//        //enable('.delete_icon', parent);
+//        }
+//
+//    },
 
     showSubEntities : function(pageId, entity) {
         var headers = {
