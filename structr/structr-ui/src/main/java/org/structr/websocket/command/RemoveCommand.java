@@ -94,18 +94,17 @@ public class RemoveCommand extends AbstractCommand {
 							// Iterate through all incoming CONTAINS relationships
 							for (AbstractRelationship rel : rels) {
 
-								relsToReorder.add(rel);
-
 								// Check if this relationship has a position property for the parent's treeAddress
 								if (treeAddress == null || rel.getRelationship().hasProperty(parentTreeAddress)) {
 
-									relsToReorder.remove(rel);
+									relsToReorder.addAll(rels);
 
 									Long pos = rel.getLongProperty(parentTreeAddress);
 
 									if (pos == null) {
 
 										deleteRel.execute(rel);
+										relsToReorder.remove(rel);
 									} else {
 
 										rel.removeProperty(parentTreeAddress);
@@ -116,7 +115,7 @@ public class RemoveCommand extends AbstractCommand {
 
 											deleteRel.execute(rel);
 											relsToReorder.remove(rel);
-
+											
 											break;
 
 										}

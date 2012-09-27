@@ -308,7 +308,9 @@ public class RelationshipHelper {
 
 			try {
 
-				rel.setProperty(treeAddress, i);
+				if (rel.getRelationship().hasProperty(treeAddress)) {
+					rel.setProperty(treeAddress, i);
+				}
 
 				i++;
 
