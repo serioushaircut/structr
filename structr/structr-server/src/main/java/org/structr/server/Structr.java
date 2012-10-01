@@ -299,6 +299,10 @@ public class Structr {
 		return this;
 	}
 	
+	public Server start(boolean waitForExit) throws IOException, InterruptedException, Exception {
+		return start(waitForExit, false);
+	}
+	
 	/**
 	 * Start the structr server with the previously specified configuration.
 	 * 
@@ -306,10 +310,10 @@ public class Structr {
 	 * @throws InterruptedException
 	 * @throws Exception 
 	 */
-	public Server start(boolean waitForExit) throws IOException, InterruptedException, Exception {
+	public Server start(boolean waitForExit, boolean isTest) throws IOException, InterruptedException, Exception {
 		
 		String sourceJarName                 = app.getProtectionDomain().getCodeSource().getLocation().toString();
-		if (StringUtils.stripEnd(sourceJarName, "/").endsWith("classes")) {
+		if (!isTest && StringUtils.stripEnd(sourceJarName, "/").endsWith("classes")) {
 			
 			String jarFile = System.getProperty("jarFile");
 			if (StringUtils.isEmpty(jarFile)) {
@@ -344,30 +348,22 @@ public class Structr {
 		List<Connector> connectors           = new LinkedList<Connector>();
 		HandlerCollection handlerCollection  = new HandlerCollection();
 
-
-		// add possible resource handler
-		if (resourceHandler != null) {
-
-			handlerCollection.addHandler(resourceHandler);
-		
-		}
-		
-		ServletContextHandler context        = new WebAppContext(server, basePath, contextPath);
+		ServletContextHandler servletContext        = new WebAppContext(server, basePath, contextPath);
 
 		// create resource collection from base path & source JAR
-		context.setBaseResource(new ResourceCollection(Resource.newResource(basePath), JarResource.newJarResource(Resource.newResource(sourceJarName))));
-		context.setInitParameter("configfile.path", confFile.getAbsolutePath());
+		servletContext.setBaseResource(new ResourceCollection(Resource.newResource(basePath), JarResource.newJarResource(Resource.newResource(sourceJarName))));
+		servletContext.setInitParameter("configfile.path", confFile.getAbsolutePath());
 
 		if (enableGzipCompression) {
 
-			FilterHolder gzipFilter = context.addFilter(GzipFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
+			FilterHolder gzipFilter = servletContext.addFilter(GzipFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
 			gzipFilter.setInitParameter("mimeTypes", "text/html,text/plain,text/css,text/javascript");
 
 		}
 		
 		if (enableRewriteFilter) {
 			
-			FilterHolder rewriteFilter = context.addFilter(UrlRewriteFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
+			FilterHolder rewriteFilter = servletContext.addFilter(UrlRewriteFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
 			rewriteFilter.setInitParameter("confPath", "/urlrewrite.xml");
 		}
 		
@@ -406,7 +402,7 @@ public class Structr {
 				FileUtils.writeLines(logbackConfFile, "UTF-8", config);
 			}
 
-			FilterHolder loggingFilter = context.addFilter(TeeFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
+			FilterHolder loggingFilter = servletContext.addFilter(TeeFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
 			loggingFilter.setInitParameter("includes", "");
 			
 			RequestLogHandler requestLogHandler = new RequestLogHandler();
@@ -424,11 +420,18 @@ public class Structr {
 			requestLogHandler.setRequestLog(requestLog);
 			
 			ContextHandlerCollection contexts = new ContextHandlerCollection();
-			contexts.setHandlers(new Handler[] { contexts, new DefaultHandler(), requestLogHandler });
+			contexts.setHandlers(new Handler[] { servletContext, requestLogHandler });
+			handlerCollection.setHandlers(new Handler[] { contexts, new DefaultHandler(), requestLogHandler });
+
+			//handlerCollection.addHandler(contexts);
 			
-			handlerCollection.addHandler(contexts);
+		}
+		
+		// add possible resource handler
+		if (resourceHandler != null) {
 
-
+			handlerCollection.addHandler(resourceHandler);
+		
 		}
 
 		// configure JSON REST servlet
@@ -458,13 +461,13 @@ public class Structr {
 			
 			logger.log(Level.INFO, "Adding servlet {0} for {1}", new Object[] { servletHolder, path } );
 			
-			context.addServlet(servletHolder, path);
+			servletContext.addServlet(servletHolder, path);
 		}
 		
 		// register structr application context listener
-		context.addEventListener(new ApplicationContextListener());
+		servletContext.addEventListener(new ApplicationContextListener());
 
-		handlerCollection.addHandler(context);
+		handlerCollection.addHandler(servletContext);
 		server.setHandler(handlerCollection);
 
 		

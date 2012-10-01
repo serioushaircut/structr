@@ -463,12 +463,16 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	}
 
 	private Object getProperty(final String key, boolean applyConverter) {
+		
+		if (key == null) {
+			return null;
+		}
 
 		Object value      = applyConverter ? cachedConvertedProperties.get(key) : cachedRawProperties.get(key);
 		boolean dontCache = false;
 		Class type         = this.getClass();
 		
-		if(value == null || !applyConverter) {
+		if (value == null || !applyConverter) {
 
 			PropertyKey startNodeIdKey = getStartNodeIdKey();
 			PropertyKey endNodeIdKey   = getEndNodeIdKey();
@@ -477,7 +481,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 				value = getStartNodeId();
 				
-				if(applyConverter) {
+				if (applyConverter) {
 					
 					cachedConvertedProperties.put(key, value);
 					
@@ -529,7 +533,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 			// only apply converter if requested
 			// (required for getComparableProperty())
-			if(applyConverter) {
+			if (applyConverter) {
 
 				// apply property converters
 				PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
@@ -545,7 +549,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 				}
 			}
 
-			if(!dontCache) {
+			if (!dontCache) {
 
 				// only cache value if it is NOT the schema default
 				if(applyConverter) {
@@ -904,7 +908,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	public RelationshipType getRelType() {
 
-		return (dbRelationship.getType());
+		return dbRelationship.getType();
 
 	}
 
@@ -983,7 +987,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	@Override
 	public String getType() {
 
-		return this.getRelType().name();
+		return getRelType().name();
 
 	}
 
@@ -1051,6 +1055,18 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	@Override
 	public void afterDeletion(SecurityContext securityContext) {
+	}
+
+	@Override
+	public void ownerModified(SecurityContext securityContext) {
+	}
+	
+	@Override
+	public void securityModified(SecurityContext securityContext) {
+	}
+	
+	@Override
+	public void locationModified(SecurityContext securityContext) {
 	}
 	
 	private boolean isValid(ErrorBuffer errorBuffer) {

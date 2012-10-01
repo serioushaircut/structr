@@ -423,10 +423,6 @@ var Structr = {
         return parent;
     },
     
-    nodeFromTreeAddress : function(treeAddress) {
-        return $('#_' + treeAddress);
-    },
-    
     node : function(id, parentId, componentId, pageId, position) {
         var entityElement, parentElement, componentElement, pageElement;
 

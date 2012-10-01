@@ -6,12 +6,12 @@
 
 <urlrewrite>
 
-    <rule match-type="regex">
+<!--    <rule match-type="regex">
         <name>RedirectToConsole</name>
-        <!--<condition type="request-uri" operator="equal">^/structr</condition>-->
-        <from>^/structr$</from>
+        <condition type="request-uri" operator="equal">^/structr</condition>
+        <from>^/structr/$</from>
         <to type="redirect" last="true">/structr/</to>
-    </rule>
+    </rule>-->
 
     <rule match-type="regex">
         <name>RedirectToHtmlServlet</name>

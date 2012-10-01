@@ -75,6 +75,20 @@ var _Entities = {
             });
         }
     },
+    
+    reloadNodeAtTreeAdress : function(treeAddress) {
+        
+        var el = Structr.elementFromAddress(treeAddress);
+        var entity = Structr.entityFromAddress(treeAddress);
+        
+        console.log('reloadNodeAtTreeAdress', el);
+        
+        $(el).children('.node').remove();
+        _Entities.resetMouseOverState(el);
+        
+        Command.children(entity.id, null, null, treeAddress);
+        
+    },
 
     reloadChildren : function(id, componentId, pageId) {
         var el = Structr.node(id, null, componentId, pageId);
@@ -86,6 +100,97 @@ var _Entities = {
         
         Command.children(id, componentId, pageId);
         
+    },
+
+    appendObjAtTreeAddress : function(entity, parentId, componentId, pageId, add, hasChildren, treeAddress) {
+
+        if (debug) console.log('_Entities.appendObj: ', entity, parentId, componentId, pageId, add, hasChildren, treeAddress);
+
+        var lastAppendedObj;
+        var expand = false;
+
+        if (entity.type == 'User') {
+
+            lastAppendedObj = _UsersAndGroups.appendUserElement(entity, parentId, add);
+            
+        } else if (entity.type == 'Group') {
+            
+            lastAppendedObj = _UsersAndGroups.appendGroupElement(entity, hasChildren);
+            expand = isExpanded(entity.id);
+
+        } else if (entity.type == 'Page') {
+            
+            lastAppendedObj = _Pages.appendPageElement(entity, hasChildren);
+            expand = isExpanded(entity.id);
+
+        } else if (entity.type == 'Component') {
+
+            lastAppendedObj = _Pages.appendElementElement(entity, parentId, componentId, pageId, true, true, treeAddress);
+            expand = isExpanded(getTreeAddress(lastAppendedObj));
+
+        } else if (entity.type == 'Content') {
+
+            if (debug) console.log('appending content element', entity, parentId, componentId, pageId, treeAddress);
+            lastAppendedObj = _Pages.appendContentElement(entity, parentId, componentId, pageId, treeAddress);
+
+        } else if (entity.type == 'Folder') {
+
+            lastAppendedObj = _Files.appendFolderElement(entity, parentId, hasChildren);
+            expand = isExpanded(entity.id);
+
+        } else if (entity.type == 'Image') {
+            
+            if (debug) console.log('Image:', entity);
+            _Files.uploadFile(entity);
+            
+            lastAppendedObj = _Files.appendImageElement(entity, parentId, add, hasChildren, true);
+            
+        } else if (entity.type == 'File') {
+            
+            if (debug) console.log('File: ', entity);
+            _Files.uploadFile(entity);
+            
+            lastAppendedObj = _Files.appendFileElement(entity, parentId, add, hasChildren, false);
+            
+        } else if (entity.type == 'TypeDefinition') {
+            
+            if (debug) console.log('TypeDefinition: ', entity);
+            lastAppendedObj = _Types.appendTypeElement(entity);
+            
+        } else {
+
+            console.log('Entity: ', entity);
+            lastAppendedObj = _Pages.appendElementElement(entity, parentId, componentId, pageId, add, hasChildren, treeAddress);
+            expand = isExpanded(getTreeAddress(lastAppendedObj));
+        }
+
+        if (debug) console.log('lastAppendedObj', lastAppendedObj);
+
+        if (lastAppendedObj) {
+            
+            var t = getTreeAddress(lastAppendedObj);
+            if (debug) console.log(t);
+            
+            if (expand) {
+                if (debug) console.log('expand', lastAppendedObj);
+                _Entities.ensureExpanded(lastAppendedObj);
+            }
+
+            var parent = lastAppendedObj.parent();
+            if (debug) console.log('lastAppendedObj.parent()', parent);
+            if (parent.children('.node') && parent.children('.node').length==1) {
+                
+                if (debug) console.log('parent of last appended object has children');
+
+                //addExpandedNode(treeAddress);
+                var ent = Structr.entityFromElement(parent);
+                if (debug) console.log('entity', ent);
+                ent.pageId = pageId;
+                _Entities.appendExpandIcon(parent, ent, true, true);
+
+            }
+        }
+
     },
 
     appendObj : function(entity, parentId, componentId, pageId, add, hasChildren, treeAddress) {
