@@ -82,9 +82,9 @@ var Command = {
         var data = {};
         if (componentId) data.componentId = componentId;
         if (treeAddress) data.treeAddress = treeAddress;
-        data.pageId = pageId;
+        if (pageId) data.pageId = pageId;
         obj.data = data;
-        if (debug) console.log('children()', obj);
+        console.log('children()', obj);
         return sendObj(obj);
     },
 

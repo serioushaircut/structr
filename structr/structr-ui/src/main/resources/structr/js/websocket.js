@@ -237,17 +237,16 @@ function connect() {
 
                 var parentTreeAddress = Object.keys(data.relData)[0];
                 var pos = data.relData[parentTreeAddress];
-                if (debug) console.log(parentTreeAddress, pos);
                 
                 treeAddress = parentTreeAddress + '_' + pos;
                 
                 entity = $('#_' + treeAddress);
                 
-                if (!entity) {
+                if (debug) console.log(entity, treeAddress, parentTreeAddress, pos);
+                
+                if (!entity || !entity.length) {
                     entity = Structr.node(entityId, parentId, componentId, pageId, position);
                 }
-
-                if (debug) console.log(entity);
 
                 //var id = getIdFromClassString(entity.prop('class'));
                 //entity.id = id;
@@ -314,15 +313,15 @@ function connect() {
 
             } else if (command == 'UPDATE') { /*********************** UPDATE ************************/
                 
-                if (debug) console.log('UPDATE');
+                if (debug) console.log('UPDATE', data);
                 
                 var relData = data.relData;
-                console.log('relData', relData);
+                if (debug) console.log('relData', relData);
                 
                 var removedProperties = data.removedProperties;
                 var modifiedProperties = data.modifiedProperties;
                 
-                console.log(removedProperties, modifiedProperties);
+                if (debug) console.log(removedProperties, modifiedProperties);
                 
                 var isRelOp = false;
                 
@@ -332,11 +331,11 @@ function connect() {
                     
                 }
                 
-                if (modifiedProperties) {
-                    if (debug) console.log('modifiedProperties.length', modifiedProperties.length);
-                    var resId = modifiedProperties[0];
-                    if (debug) console.log('relData[resId]', relData[resId]);
-                }
+//                if (modifiedProperties) {
+//                    if (debug) console.log('modifiedProperties.length', modifiedProperties.length);
+//                    var treeAddress = modifiedProperties[0];
+//                    console.log('new position or position changed', relData[treeAddress]);
+//                }
                 
                 if (relData && removedProperties && removedProperties.length) {
                     console.log('removedProperties', removedProperties);
@@ -345,52 +344,64 @@ function connect() {
                     
                 } else if (isRelOp && modifiedProperties && modifiedProperties.length) {
                     
-                    if (debug) console.log(data);
+                    treeAddress = modifiedProperties[0];
                     
-                    if (debug) console.log('modifiedProperties', modifiedProperties[0]);
-                		    
-                    var newPageId = modifiedProperties[0];
-                    //var pos = relData[newPageId];
-                		    
-                    var page;
-                        
-                    if (newPageId != '*') {
-                        page   = Structr.node(newPageId);
-                    }
-                    
-                    if (debug) console.log('page', page);
-                		    
-                    if (page && page.length) {
-                                    
-                        var entity = Structr.entity(relData.endNodeId, relData.startNodeId);
-                        if (debug) console.log('entity', entity, pageId, newPageId);
-                        if (entity && newPageId) {
-                            
-                            parentId = relData.startNodeId;
-                            
-                            var parent = Structr.entity(parentId);
-                            if (debug) console.log('parent type', parent, parent.type);
-                            if (!parent.type || parent.type == 'Page') return;
-                            
-                            var id = entity.id;
-                            //_Pages.removeFrom(entity.id, relData.startNodeId, null, newPageId, pos);
-                            //_Entities.appendObj(entity, relData.startNodeId, null, newPageId);
-                            var el = Structr.node(id, parentId, componentId, newPageId);
-                            if (debug) console.log('node already exists?', el);
-                            
-                            if (id && (!el || !el.length)) {
-                                //el.remove();
-                            
-                                //_Entities.resetMouseOverState(el);
-                                _Entities.appendObj(entity, parentId, null, newPageId, true, true);
-                            }
-                            
-                        //_Entities.reloadChildren(relData.startNodeId, componentId, newPageId)
-                        
-                        //_Pages.refresh();
-                        
-                        }
-                    }
+                   _Entities.reloadNodeAtTreeAdress(treeAddress);
+//                    
+//                    var el = Structr.elementFromAddress(treeAddress);
+//                    //if (el) el.remove();
+//                    
+//                    var entity = Structr.entity(relData.endNodeId, relData.startNodeId);
+//                    console.log(entity);
+//                    _Entities.appendObjAtTreeAddress(entity, parentId, null, pageId, true, true, treeAddress);
+//                    
+//                    
+//                    if (debug) console.log(data);
+//                    
+//                    if (debug) console.log('modifiedProperties', modifiedProperties[0]);
+//                		    
+//                    var newPageId = modifiedProperties[0];
+//                    //var pos = relData[newPageId];
+//                		    
+//                    var page;
+//                        
+//                    if (newPageId != '*') {
+//                        page   = Structr.node(newPageId);
+//                    }
+//                    
+//                    if (debug) console.log('page', page);
+//                		    
+//                    if (page && page.length) {
+//                                    
+//                        var entity = Structr.entity(relData.endNodeId, relData.startNodeId);
+//                        if (debug) console.log('entity', entity, pageId, newPageId);
+//                        if (entity && newPageId) {
+//                            
+//                            parentId = relData.startNodeId;
+//                            
+//                            var parent = Structr.entity(parentId);
+//                            if (debug) console.log('parent type', parent, parent.type);
+//                            if (!parent.type || parent.type == 'Page') return;
+//                            
+//                            var id = entity.id;
+//                            //_Pages.removeFrom(entity.id, relData.startNodeId, null, newPageId, pos);
+//                            //_Entities.appendObj(entity, relData.startNodeId, null, newPageId);
+//                            var el = Structr.node(id, parentId, componentId, newPageId);
+//                            if (debug) console.log('node already exists?', el);
+//                            
+//                            if (id && (!el || !el.length)) {
+//                                //el.remove();
+//                            
+//                                //_Entities.resetMouseOverState(el);
+//                                _Entities.appendObj(entity, parentId, null, newPageId, true, true);
+//                            }
+//                            
+//                        //_Entities.reloadChildren(relData.startNodeId, componentId, newPageId)
+//                        
+//                        //_Pages.refresh();
+//                        
+//                        }
+//                    }
                     
                 } else {
                     

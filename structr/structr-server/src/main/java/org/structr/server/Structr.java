@@ -348,14 +348,6 @@ public class Structr {
 		List<Connector> connectors           = new LinkedList<Connector>();
 		HandlerCollection handlerCollection  = new HandlerCollection();
 
-
-		// add possible resource handler
-		if (resourceHandler != null) {
-
-			handlerCollection.addHandler(resourceHandler);
-		
-		}
-		
 		ServletContextHandler servletContext        = new WebAppContext(server, basePath, contextPath);
 
 		// create resource collection from base path & source JAR
@@ -433,6 +425,13 @@ public class Structr {
 
 			//handlerCollection.addHandler(contexts);
 			
+		}
+		
+		// add possible resource handler
+		if (resourceHandler != null) {
+
+			handlerCollection.addHandler(resourceHandler);
+		
 		}
 
 		// configure JSON REST servlet

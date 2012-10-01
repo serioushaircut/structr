@@ -42,7 +42,7 @@ var _Pages = {
     clone_icon : 'icon/page_copy.png',
 
     init : function() {
-        //console.log('_Pages.init()');
+        console.log('_Pages.init()');
         _Pages.resize();
     },
 
@@ -1014,7 +1014,7 @@ var _Pages = {
     removeFrom : function(entityId, parentTreeAddress) {
         console.log('Pages.remove', entityId, parentTreeAddress);
 
-        var parent = Structr.nodeFromTreeAddress(parentTreeAddress);
+        var parent = Structr.elementFromAddress(parentTreeAddress);
         var element = parent.find('.' + entityId + '_');
 
         console.log('element, parent', element, parent);
