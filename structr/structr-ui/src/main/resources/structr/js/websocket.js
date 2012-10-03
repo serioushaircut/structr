@@ -282,27 +282,38 @@ function connect() {
 
             //} else if (command == 'ADD' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
             } else if (command == 'CREATE' || command == 'ADD' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
-            //} else if (command == 'CREATE' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
+                //} else if (command == 'CREATE' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
                 
-                console.log(command, result, data);
+                //console.log(command, result, data);
                 
                 //var treeAddress = data.data.treeAddress;
 				
                 $(result).each(function(i, entity) {
                     
-                   if (debug) console.log(command, entity, parentId, componentId, pageId, command == 'ADD', isIn(entity.id, data.nodesWithChildren), treeAddress);
+                    if (entity.paths) {
                     
-                    //var el = Structr.node(entity.id, parentId, componentId, pageId);
-                    var el = Structr.elementFromAddress(treeAddress);
-                    if (el) el.remove();
+                        $.each(entity.paths, function(p, treeAddress) {
+                            console.log('append at tree address', treeAddress);
+//                            var el = Structr.elementFromAddress(treeAddress);
+//                            if (el) el.remove();
+                            _Entities.appendObjAtTreeAddress(entity, null, null, null, true, true, true, treeAddress);
+                        });
+                    } else {
+                        console.log(command, entity, parentId, componentId, pageId, command == 'ADD', isIn(entity.id, data.nodesWithChildren), treeAddress);
                     
-                    //alert(entity.id);
+                        //var el = Structr.node(entity.id, parentId, componentId, pageId);
+                        var el = Structr.elementFromAddress(treeAddress);
+                        if (el) el.remove();
                     
-                    _Entities.appendObj(entity, parentId, componentId, pageId, command == 'ADD', isIn(entity.id, data.nodesWithChildren), treeAddress);
+                        //alert(entity.id);
                     
+                        _Entities.appendObj(entity, parentId, componentId, pageId, command == 'ADD', isIn(entity.id, data.nodesWithChildren), treeAddress);
+                    }                    
                     if (command == 'CREATE' && entity.type == 'Page') {
                         var tab = $('#show_' + entity.id, previews);
-                        setTimeout(function() { _Pages.activateTab(tab) }, 200);
+                        setTimeout(function() {
+                            _Pages.activateTab(tab)
+                        }, 200);
                     }
                     
                 });
@@ -331,11 +342,11 @@ function connect() {
                     
                 }
                 
-//                if (modifiedProperties) {
-//                    if (debug) console.log('modifiedProperties.length', modifiedProperties.length);
-//                    var treeAddress = modifiedProperties[0];
-//                    console.log('new position or position changed', relData[treeAddress]);
-//                }
+                //                if (modifiedProperties) {
+                //                    if (debug) console.log('modifiedProperties.length', modifiedProperties.length);
+                //                    var treeAddress = modifiedProperties[0];
+                //                    console.log('new position or position changed', relData[treeAddress]);
+                //                }
                 
                 if (relData && removedProperties && removedProperties.length) {
                     console.log('removedProperties', removedProperties);
@@ -346,62 +357,62 @@ function connect() {
                     
                     treeAddress = modifiedProperties[0];
                     
-                   _Entities.reloadNodeAtTreeAdress(treeAddress);
-//                    
-//                    var el = Structr.elementFromAddress(treeAddress);
-//                    //if (el) el.remove();
-//                    
-//                    var entity = Structr.entity(relData.endNodeId, relData.startNodeId);
-//                    console.log(entity);
-//                    _Entities.appendObjAtTreeAddress(entity, parentId, null, pageId, true, true, treeAddress);
-//                    
-//                    
-//                    if (debug) console.log(data);
-//                    
-//                    if (debug) console.log('modifiedProperties', modifiedProperties[0]);
-//                		    
-//                    var newPageId = modifiedProperties[0];
-//                    //var pos = relData[newPageId];
-//                		    
-//                    var page;
-//                        
-//                    if (newPageId != '*') {
-//                        page   = Structr.node(newPageId);
-//                    }
-//                    
-//                    if (debug) console.log('page', page);
-//                		    
-//                    if (page && page.length) {
-//                                    
-//                        var entity = Structr.entity(relData.endNodeId, relData.startNodeId);
-//                        if (debug) console.log('entity', entity, pageId, newPageId);
-//                        if (entity && newPageId) {
-//                            
-//                            parentId = relData.startNodeId;
-//                            
-//                            var parent = Structr.entity(parentId);
-//                            if (debug) console.log('parent type', parent, parent.type);
-//                            if (!parent.type || parent.type == 'Page') return;
-//                            
-//                            var id = entity.id;
-//                            //_Pages.removeFrom(entity.id, relData.startNodeId, null, newPageId, pos);
-//                            //_Entities.appendObj(entity, relData.startNodeId, null, newPageId);
-//                            var el = Structr.node(id, parentId, componentId, newPageId);
-//                            if (debug) console.log('node already exists?', el);
-//                            
-//                            if (id && (!el || !el.length)) {
-//                                //el.remove();
-//                            
-//                                //_Entities.resetMouseOverState(el);
-//                                _Entities.appendObj(entity, parentId, null, newPageId, true, true);
-//                            }
-//                            
-//                        //_Entities.reloadChildren(relData.startNodeId, componentId, newPageId)
-//                        
-//                        //_Pages.refresh();
-//                        
-//                        }
-//                    }
+                    _Entities.reloadNodeAtTreeAdress(treeAddress);
+                //                    
+                //                    var el = Structr.elementFromAddress(treeAddress);
+                //                    //if (el) el.remove();
+                //                    
+                //                    var entity = Structr.entity(relData.endNodeId, relData.startNodeId);
+                //                    console.log(entity);
+                //                    _Entities.appendObjAtTreeAddress(entity, parentId, null, pageId, true, true, treeAddress);
+                //                    
+                //                    
+                //                    if (debug) console.log(data);
+                //                    
+                //                    if (debug) console.log('modifiedProperties', modifiedProperties[0]);
+                //                		    
+                //                    var newPageId = modifiedProperties[0];
+                //                    //var pos = relData[newPageId];
+                //                		    
+                //                    var page;
+                //                        
+                //                    if (newPageId != '*') {
+                //                        page   = Structr.node(newPageId);
+                //                    }
+                //                    
+                //                    if (debug) console.log('page', page);
+                //                		    
+                //                    if (page && page.length) {
+                //                                    
+                //                        var entity = Structr.entity(relData.endNodeId, relData.startNodeId);
+                //                        if (debug) console.log('entity', entity, pageId, newPageId);
+                //                        if (entity && newPageId) {
+                //                            
+                //                            parentId = relData.startNodeId;
+                //                            
+                //                            var parent = Structr.entity(parentId);
+                //                            if (debug) console.log('parent type', parent, parent.type);
+                //                            if (!parent.type || parent.type == 'Page') return;
+                //                            
+                //                            var id = entity.id;
+                //                            //_Pages.removeFrom(entity.id, relData.startNodeId, null, newPageId, pos);
+                //                            //_Entities.appendObj(entity, relData.startNodeId, null, newPageId);
+                //                            var el = Structr.node(id, parentId, componentId, newPageId);
+                //                            if (debug) console.log('node already exists?', el);
+                //                            
+                //                            if (id && (!el || !el.length)) {
+                //                                //el.remove();
+                //                            
+                //                                //_Entities.resetMouseOverState(el);
+                //                                _Entities.appendObj(entity, parentId, null, newPageId, true, true);
+                //                            }
+                //                            
+                //                        //_Entities.reloadChildren(relData.startNodeId, componentId, newPageId)
+                //                        
+                //                        //_Pages.refresh();
+                //                        
+                //                        }
+                //                    }
                     
                 } else {
                     
@@ -476,7 +487,7 @@ function connect() {
                                 if (editor && editor.id == data.id) {
                                     if (debug) console.log(editor.id);
                                     editor.setValue(newValue);
-                                    //editor.setCursor(editorCursor);
+                                //editor.setCursor(editorCursor);
                                 }
                             }
                         }

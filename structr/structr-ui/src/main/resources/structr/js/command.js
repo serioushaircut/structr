@@ -84,7 +84,7 @@ var Command = {
         if (treeAddress) data.treeAddress = treeAddress;
         if (pageId) data.pageId = pageId;
         obj.data = data;
-        console.log('children()', obj);
+        if (debug) console.log('children()', obj);
         return sendObj(obj);
     },
 

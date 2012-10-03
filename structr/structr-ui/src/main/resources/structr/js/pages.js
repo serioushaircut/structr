@@ -42,7 +42,7 @@ var _Pages = {
     clone_icon : 'icon/page_copy.png',
 
     init : function() {
-        console.log('_Pages.init()');
+        if (debug) console.log('_Pages.init()');
         _Pages.resize();
     },
 
@@ -755,8 +755,7 @@ var _Pages = {
             containment: '#pages',
             start: function(event, ui) {
                 sorting = true;
-                var pageId = getId(ui.item.closest('.page')[0]);
-                obj.id = pageId;
+                obj.treeAddress = $(ui.item).parent().attr('id').substring(1);
             },
             update: function(event, ui) {
                 if (debug) console.log('---------')
@@ -766,9 +765,9 @@ var _Pages = {
                     var self = $(this);
                     if (debug) console.log(getId(self), i);
                     data[getId(self)] = i;
-                    obj.data = data;
                     _Entities.resetMouseOverState(v);
                 });
+                obj.data = data;
                 sendObj(obj);
                 sorting = false;
                 _Pages.reloadPreviews();

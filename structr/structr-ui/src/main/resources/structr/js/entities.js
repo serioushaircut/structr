@@ -83,10 +83,14 @@ var _Entities = {
         
         console.log('reloadNodeAtTreeAdress', el);
         
-        $(el).children('.node').remove();
-        _Entities.resetMouseOverState(el);
+        if (el && el.length) {
         
-        Command.children(entity.id, null, null, treeAddress);
+            $(el).children('.node').remove();
+            _Entities.resetMouseOverState(el);
+        
+            Command.children(entity.id, null, null, treeAddress);
+        
+        }
         
     },
 

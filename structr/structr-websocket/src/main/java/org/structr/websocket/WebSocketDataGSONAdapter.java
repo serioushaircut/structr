@@ -408,6 +408,11 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 				webSocketData.setPage(root.getAsJsonPrimitive("page").getAsInt());
 			}
 
+			if (root.has("treeAddress")) {
+
+				webSocketData.setTreeAddress(root.getAsJsonPrimitive("treeAddress").getAsString());
+			}
+
 			if (nodeData != null) {
 
 				for (Entry<String, JsonElement> entry : nodeData.entrySet()) {

@@ -89,15 +89,17 @@ public class RemoveCommand extends AbstractCommand {
 						public Object execute() throws FrameworkException {
 
 							List<AbstractRelationship> relsToReorder = new ArrayList<AbstractRelationship>();
-							String parentTreeAddress                 = StringUtils.substringBeforeLast(treeAddress, "_");
+							String parentTreeAddress                 = PageHelper.getParentTreeAddress(treeAddress);
 
 							// Iterate through all incoming CONTAINS relationships
 							for (AbstractRelationship rel : rels) {
 
 								// Check if this relationship has a position property for the parent's treeAddress
 								if (treeAddress == null || rel.getRelationship().hasProperty(parentTreeAddress)) {
+									
+									List<AbstractRelationship> siblingRels = (List<AbstractRelationship>) rel.getStartNode().getOutgoingRelationships(RelType.CONTAINS);
 
-									relsToReorder.addAll(rels);
+									relsToReorder.addAll(siblingRels);
 
 									Long pos = rel.getLongProperty(parentTreeAddress);
 
@@ -116,7 +118,7 @@ public class RemoveCommand extends AbstractCommand {
 											deleteRel.execute(rel);
 											relsToReorder.remove(rel);
 											
-											break;
+											//break;
 
 										}
 

@@ -38,6 +38,8 @@ import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
+import org.structr.core.GraphObject;
+import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -67,8 +69,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.structr.core.GraphObject;
-import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -307,7 +307,8 @@ public class Importer {
 
 			// Type
 			attrs.add(new NodeAttribute(AbstractNode.Key.type.name(), type));
-			//attrs.add(new NodeAttribute(AbstractNode.Key.name.name(), "New " + type));
+
+			// attrs.add(new NodeAttribute(AbstractNode.Key.name.name(), "New " + type));
 
 			// Tag name
 			attrs.add(new NodeAttribute("tag", tag));
@@ -408,10 +409,9 @@ public class Importer {
 		}
 
 		for (GraphObject obj : result.getResults()) {
-			
-			AbstractNode foundNode = (AbstractNode) obj;
 
-			String foundNodePath = foundNode.getStringProperty(HtmlElement.UiKey.path);
+			AbstractNode foundNode = (AbstractNode) obj;
+			String foundNodePath   = foundNode.getStringProperty(HtmlElement.UiKey.path);
 
 			logger.log(Level.INFO, "Found a node with path {0}", foundNodePath);
 
@@ -459,9 +459,29 @@ public class Importer {
 
 	private AbstractRelationship linkNodes(AbstractNode startNode, AbstractNode endNode, String pageId, int index) throws FrameworkException {
 
-		AbstractRelationship rel = (AbstractRelationship) createRel.execute(startNode, endNode, RelType.CONTAINS);
+		Map<String, Object> relData = new HashMap<String, Object>();
 
-		rel.setProperty(pageId, index);
+		if (startNode != null) {
+
+			Set<String> parentPaths = (Set<String>) startNode.getProperty(org.structr.web.entity.Element.UiKey.paths);
+
+			if (parentPaths != null && !parentPaths.isEmpty()) {
+
+				String parentTreeAddress = parentPaths.iterator().next();
+
+				if (parentTreeAddress.startsWith(pageId)) {
+
+					relData.put(parentTreeAddress, index);
+				}
+
+			} else {
+
+				relData.put(pageId, index);
+			}
+
+		}
+
+		AbstractRelationship rel = (AbstractRelationship) createRel.execute(startNode, endNode, RelType.CONTAINS, relData, false);
 
 		return rel;
 
@@ -643,9 +663,9 @@ public class Importer {
 
 		String relativeFilePath = File.getDirectoryPath(uuid) + "/" + uuid;
 		File fileNode           = (File) createNode.execute(new NodeAttribute(AbstractNode.Key.uuid.name(), uuid), new NodeAttribute(AbstractNode.Key.type.name(), File.class.getSimpleName()),
-					new NodeAttribute(AbstractNode.Key.name.name(), name), new NodeAttribute(File.Key.relativeFilePath.name(), relativeFilePath),
-					new NodeAttribute(File.Key.contentType.name(), contentType), new NodeAttribute("visibleToPublicUsers", publicVisible),
-					new NodeAttribute("visibleToAuthenticatedUsers", authVisible));
+						  new NodeAttribute(AbstractNode.Key.name.name(), name), new NodeAttribute(File.Key.relativeFilePath.name(), relativeFilePath),
+						  new NodeAttribute(File.Key.contentType.name(), contentType), new NodeAttribute("visibleToPublicUsers", publicVisible),
+						  new NodeAttribute("visibleToAuthenticatedUsers", authVisible));
 
 		fileNode.getChecksum();    // calculates and stores checksum
 		indexNode.execute(fileNode);
@@ -657,10 +677,10 @@ public class Importer {
 	private Image createImageNode(final String uuid, final String name, final String contentType) throws FrameworkException {
 
 		String relativeFilePath = Image.getDirectoryPath(uuid) + "/" + uuid;
-		Image imageNode         = (Image) createNode.execute(new NodeAttribute(AbstractNode.Key.uuid.name(), uuid), new NodeAttribute(AbstractNode.Key.type.name(), Image.class.getSimpleName()),
-					  new NodeAttribute(AbstractNode.Key.name.name(), name), new NodeAttribute(File.Key.relativeFilePath.name(), relativeFilePath),
-					  new NodeAttribute(File.Key.contentType.name(), contentType), new NodeAttribute("visibleToPublicUsers", publicVisible),
-					  new NodeAttribute("visibleToAuthenticatedUsers", authVisible));
+		Image imageNode         = (Image) createNode.execute(new NodeAttribute(AbstractNode.Key.uuid.name(), uuid),
+						  new NodeAttribute(AbstractNode.Key.type.name(), Image.class.getSimpleName()), new NodeAttribute(AbstractNode.Key.name.name(), name),
+						  new NodeAttribute(File.Key.relativeFilePath.name(), relativeFilePath), new NodeAttribute(File.Key.contentType.name(), contentType),
+						  new NodeAttribute("visibleToPublicUsers", publicVisible), new NodeAttribute("visibleToAuthenticatedUsers", authVisible));
 
 		imageNode.getChecksum();    // calculates and stores checksum
 		indexNode.execute(imageNode);

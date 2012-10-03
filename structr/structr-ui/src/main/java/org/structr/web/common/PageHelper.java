@@ -152,6 +152,12 @@ public class PageHelper {
 
 	}
 
+	public static String getParentTreeAddress(final String treeAddress) {
+
+		return StringUtils.substringBeforeLast(treeAddress, "_");
+
+	}
+
 	public static List<AbstractRelationship> getChildRelationships(final HttpServletRequest request, final AbstractNode node, final String treeAddress, final String componentId) {
 
 		List<AbstractRelationship> rels = new LinkedList<AbstractRelationship>();
@@ -279,6 +285,20 @@ public class PageHelper {
 		return position;
 	}
 
+	public static String getFirstPath(final AbstractNode node) {
+
+		Set<String> paths = (Set<String>) node.getProperty(Element.UiKey.paths);
+
+		if (paths != null && !paths.isEmpty()) {
+
+			return paths.iterator().next();
+		} else {
+
+			return null;
+		}
+
+	}
+
 	private static boolean hasAttribute(HttpServletRequest request, String key) {
 
 		return (key != null) && (request.getAttribute(key) != null);
@@ -332,11 +352,14 @@ public class PageHelper {
 
 	/**
 	 * Check if given string is a valid tree address
-	 * 
+	 *
 	 * @param key
-	 * @return 
+	 * @return
 	 */
 	public static boolean isTreeAddress(final String key) {
+
 		return StringUtils.substringBefore(key, "_").matches("[a-zA-Z0-9]{32}");
+
 	}
+
 }

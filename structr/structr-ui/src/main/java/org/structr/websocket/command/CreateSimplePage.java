@@ -32,6 +32,7 @@ import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.web.entity.Content;
+import org.structr.web.entity.Element;
 import org.structr.web.entity.Page;
 import org.structr.web.entity.html.Body;
 import org.structr.web.entity.html.Div;
@@ -47,6 +48,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -62,11 +64,14 @@ public class CreateSimplePage extends AbstractCommand {
 	private static final Logger logger = Logger.getLogger(WrapInComponentCommand.class.getName());
 	private static Command createNode;
 	private static Command createRel;
+	private static String pageName;
 
 	//~--- methods --------------------------------------------------------
 
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
+
+		pageName = (String) webSocketData.getNodeData().get(Page.UiKey.name.name());
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
@@ -78,33 +83,33 @@ public class CreateSimplePage extends AbstractCommand {
 			@Override
 			public Object execute() throws FrameworkException {
 
-				Page page = (Page) createElement(null, Page.class.getSimpleName(), 0, null);
+				Page page = (Page) createElement(pageName, null, Page.class.getSimpleName(), 0, null);
 
 				page.setProperty(Page.UiKey.contentType, "text/html");
 
-				Html html   = (Html) createElement(page, Html.class.getSimpleName(), 0, page);
-				Head head   = (Head) createElement(page, Head.class.getSimpleName(), 0, html);
-				Body body   = (Body) createElement(page, Body.class.getSimpleName(), 1, html);
-				Title title = (Title) createElement(page, Title.class.getSimpleName(), 0, head);
+				Html html   = (Html) createElement(null, page, Html.class.getSimpleName(), 0, page);
+				Head head   = (Head) createElement(null, page, Head.class.getSimpleName(), 0, html);
+				Body body   = (Body) createElement(null, page, Body.class.getSimpleName(), 1, html);
+				Title title = (Title) createElement(null, page, Title.class.getSimpleName(), 0, head);
 
 				// nodeData.put(Content.UiKey.content.name(), "Page Title");
-				Content content = (Content) createElement(page, Content.class.getSimpleName(), 0, title);
+				Content content = (Content) createElement(null, page, Content.class.getSimpleName(), 0, title);
 
 				// nodeData.remove(Content.UiKey.content.name());
 				content.setProperty(Content.UiKey.content, "Page Title");
 
-				H1 h1 = (H1) createElement(page, H1.class.getSimpleName(), 0, body);
+				H1 h1 = (H1) createElement(null, page, H1.class.getSimpleName(), 0, body);
 
 				// nodeData.put(Content.UiKey.content.name(), "Page Title");
-				Content h1Content = (Content) createElement(page, Content.class.getSimpleName(), 0, h1);
+				Content h1Content = (Content) createElement(null, page, Content.class.getSimpleName(), 0, h1);
 
 				// nodeData.remove(Content.UiKey.content.name());
 				h1Content.setProperty(Content.UiKey.content, "Page Title");
 
-				Div div = (Div) createElement(page, Div.class.getSimpleName(), 1, body);
+				Div div = (Div) createElement(null, page, Div.class.getSimpleName(), 1, body);
 
 				// nodeData.put(Content.UiKey.content.name(), "Body Text");
-				Content divContent = (Content) createElement(page, Content.class.getSimpleName(), 0, div);
+				Content divContent = (Content) createElement(null, page, Content.class.getSimpleName(), 0, div);
 
 				divContent.setProperty(Content.UiKey.content, "Body Text");
 
@@ -174,13 +179,13 @@ public class CreateSimplePage extends AbstractCommand {
 		} catch (FrameworkException fex) {
 
 			logger.log(Level.WARNING, "Could not create node.", fex);
-			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
+			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.toString()).build(), true);
 
 		}
 
 	}
 
-	private AbstractNode createElement(final AbstractNode page, final String type, final int position, final AbstractNode parentElement) throws FrameworkException {
+	private AbstractNode createElement(final String name, final AbstractNode page, final String type, final int position, final AbstractNode parentElement) throws FrameworkException {
 
 		Map<String, Object> nodeData = new HashMap<String, Object>();
 
@@ -189,16 +194,27 @@ public class CreateSimplePage extends AbstractCommand {
 
 		Map<String, Object> relData = new HashMap<String, Object>();
 
-		if (page != null) {
+		if (parentElement != null) {
 
-			String pageId = page.getUuid();
+			Set<String> parentPaths = (Set<String>) parentElement.getProperty(Element.UiKey.paths);
 
-			relData.put(pageId, position);
+			if (parentPaths != null && !parentPaths.isEmpty()) {
+
+				String parentTreeAddress = parentPaths.iterator().next();
+
+				relData.put(parentTreeAddress, position);
+
+			} else {
+
+				relData.put(page.getUuid(), position);
+			}
 
 		}
 
 		nodeData.put(AbstractNode.Key.type.name(), type);
-		nodeData.put(HtmlElement.UiKey.name.name(), type.toLowerCase());
+		nodeData.put(HtmlElement.UiKey.name.name(), name != null
+			? name
+			: type.toLowerCase());
 
 		if (!Content.class.getSimpleName().equals(type)) {
 

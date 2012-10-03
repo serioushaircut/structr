@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.web.common.PageHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -235,17 +236,19 @@ public class AddCommand extends AbstractCommand {
 
 					if (contentNode != null) {
 
+						String addedNodeTreeAddress = PageHelper.getFirstPath(nodeToAdd);
+						
 						try {
-
+							relData.clear();
 							// New content node is at position 0!!
-							relData.put(treeAddress, 0L);
+							relData.put(addedNodeTreeAddress, 0L);
 							rel.createRelationship(securityContext, nodeToAdd, contentNode, relData);
 
 							// set page ID on copied branch
-							if ((oldParentTreeAddress != null) && (treeAddress != null) && !oldParentTreeAddress.equals(treeAddress)) {
-
-								RelationshipHelper.tagOutgoingRelsWithPageId(contentNode, contentNode, oldParentTreeAddress, treeAddress);
-							}
+//							if ((oldParentTreeAddress != null) && (treeAddress != null) && !oldParentTreeAddress.equals(treeAddress)) {
+//
+//								RelationshipHelper.tagOutgoingRelsWithPageId(contentNode, contentNode, oldParentTreeAddress, treeAddress);
+//							}
 						} catch (Throwable t) {
 
 							getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);

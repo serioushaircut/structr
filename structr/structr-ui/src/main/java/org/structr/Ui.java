@@ -42,7 +42,7 @@ public class Ui implements org.structr.server.StructrServer {
 				.addServlet("/structr/html/*", htmlServletHolder)
 				.addServlet("/structr/ws/*", wsServletHolder)
 			    
-				//.addResourceHandler("src/main", false, new String[] { "console.html" })
+				.addResourceHandler("/structr", "src/main/resources/structr", true, new String[] { "console.html" })
 			    
 				.enableRewriteFilter()
 				

@@ -30,12 +30,14 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.converter.IntConverter;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractNode.Key;
 import org.structr.core.entity.Linkable;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.RelationClass;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.node.NodeService;
 import org.structr.core.notion.PropertyNotion;
+import org.structr.core.validator.TypeUniquenessValidator;
 import org.structr.web.entity.html.Html;
 
 //~--- classes ----------------------------------------------------------------
@@ -66,7 +68,8 @@ public class Page extends AbstractNode implements Linkable {
 		EntityContext.registerPropertyConverter(Page.class, UiKey.cacheForSeconds, IntConverter.class);
 		
 		EntityContext.registerReadOnlyProperty(Page.class, UiKey.version);
-
+		
+		EntityContext.registerPropertyValidator(Page.class, UiKey.name, new TypeUniquenessValidator(Page.class));
 	}
 
 	//~--- constant enums -------------------------------------------------
@@ -88,5 +91,5 @@ public class Page extends AbstractNode implements Linkable {
 		}
 		
 	}
-
+	
 }
