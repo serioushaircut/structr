@@ -34,7 +34,7 @@ import org.structr.core.entity.Linkable;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.RelationClass;
 import org.structr.core.entity.RelationClass.Cardinality;
-import org.structr.core.node.NodeService;
+import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.web.entity.html.Html;
 
@@ -60,8 +60,8 @@ public class Page extends AbstractNode implements Linkable {
 
 //              EntityContext.registerEntityRelation(Page.class,        Element.class,          RelType.LINK,           Direction.INCOMING, Cardinality.OneToMany);
 		EntityContext.registerEntityRelation(Page.class, Html.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne);
-		EntityContext.registerSearchablePropertySet(Page.class, NodeService.NodeIndex.fulltext.name(), Element.UiKey.values());
-		EntityContext.registerSearchablePropertySet(Page.class, NodeService.NodeIndex.keyword.name(), Element.UiKey.values());
+		EntityContext.registerSearchablePropertySet(Page.class, NodeIndex.fulltext, Element.UiKey.values());
+		EntityContext.registerSearchablePropertySet(Page.class, NodeIndex.keyword, Element.UiKey.values());
 		EntityContext.registerPropertyConverter(Page.class, UiKey.position, IntConverter.class);
 		EntityContext.registerPropertyConverter(Page.class, UiKey.cacheForSeconds, IntConverter.class);
 		

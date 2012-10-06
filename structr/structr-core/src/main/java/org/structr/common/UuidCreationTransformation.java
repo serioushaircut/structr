@@ -35,10 +35,10 @@ public class UuidCreationTransformation extends GraphObjectTransformation {
 	public void apply(SecurityContext securityContext, GraphObject obj) throws FrameworkException {
 
 		// create uuid if not set
-		String uuid = (String)obj.getProperty(AbstractNode.Key.uuid.name());
+		String uuid = (String)obj.getProperty(AbstractNode.Key.uuid);
 		if(StringUtils.isBlank(uuid)) {
 			synchronized(obj) {
-				obj.setProperty(AbstractNode.Key.uuid.name(), UUID.randomUUID().toString().replaceAll("[\\-]+", ""));
+				obj.setProperty(AbstractNode.Key.uuid, UUID.randomUUID().toString().replaceAll("[\\-]+", ""));
 			}
 		}
 	}

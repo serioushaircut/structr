@@ -66,6 +66,7 @@ import java.text.ParseException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.GraphObjectComparator.SortOrder;
 import org.structr.core.converter.DateConverter;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.notion.PropertyNotion;
@@ -97,9 +98,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		EntityContext.registerPropertyConverter(AbstractNode.class, Key.hidden, BooleanConverter.class);
 		EntityContext.registerPropertyConverter(AbstractNode.class, Key.visibleToPublicUsers, BooleanConverter.class);
 		EntityContext.registerPropertyConverter(AbstractNode.class, Key.visibleToAuthenticatedUsers, BooleanConverter.class);
-		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.fulltext.name(), Key.values());
-		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(), Key.values());
-		EntityContext.registerSearchableProperty(AbstractNode.class, NodeIndex.uuid.name(), Key.uuid);
+		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.fulltext, Key.values());
+		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword, Key.values());
+		EntityContext.registerSearchableProperty(AbstractNode.class, NodeIndex.uuid, Key.uuid);
 
 		EntityContext.registerPropertyRelation(AbstractNode.class, Key.ownerId, Principal.class, RelType.OWNS, Direction.INCOMING, Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.uuid));
 
@@ -115,8 +116,8 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	//~--- fields ---------------------------------------------------------
 
-	protected Map<String, Object> cachedConvertedProperties  = new LinkedHashMap<String, Object>();
-	protected Map<String, Object> cachedRawProperties        = new LinkedHashMap<String, Object>();
+	protected Map<PropertyKey, Object> cachedConvertedProperties  = new LinkedHashMap<PropertyKey, Object>();
+	protected Map<PropertyKey, Object> cachedRawProperties        = new LinkedHashMap<PropertyKey, Object>();
 	protected Principal cachedOwnerNode                      = null;
 
 	// request parameters
@@ -128,7 +129,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	protected Node dbNode;
 
 	// dirty flag, true means that some changes are not yet written to the database
-	protected Map<String, Object> properties;
+	protected Map<PropertyKey, Object> properties;
 	protected String cachedUuid = null;
 	protected boolean isDirty;
 
@@ -138,8 +139,8 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	public static enum Key implements PropertyKey {
 
-		uuid, name, type, createdBy, createdDate, deleted, hidden, lastModifiedDate, visibleToPublicUsers, visibilityEndDate, visibilityStartDate,
-		visibleToAuthenticatedUsers, categories, ownerId
+		id, uuid, name, type, createdBy, createdDate, deleted, hidden, lastModifiedDate, visibleToPublicUsers, visibilityEndDate, visibilityStartDate,
+		visibleToAuthenticatedUsers, categories, ownerId, unknown_type
 
 	}
 
@@ -147,12 +148,12 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	public AbstractNode() {
 
-		this.properties = new HashMap<String, Object>();
+		this.properties = new HashMap<PropertyKey, Object>();
 		isDirty         = true;
 
 	}
 
-	public AbstractNode(final Map<String, Object> properties) {
+	public AbstractNode(final Map<PropertyKey, Object> properties) {
 
 		this.properties = properties;
 		isDirty         = true;
@@ -312,7 +313,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	@Override
-	public void removeProperty(final String key) throws FrameworkException {
+	public void removeProperty(final PropertyKey key) throws FrameworkException {
 
 		if (this.dbNode != null) {
 
@@ -344,7 +345,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				@Override
 				public Object execute() throws FrameworkException {
 
-					dbNode.removeProperty(key);
+					dbNode.removeProperty(key.name());
 
 					return null;
 
@@ -439,16 +440,16 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	@Override
-	public String getDefaultSortOrder() {
+	public SortOrder getDefaultSortOrder() {
 
-		return GraphObjectComparator.ASCENDING;
+		return GraphObjectComparator.SortOrder.ASCENDING;
 
 	}
 
 	@Override
 	public String getType() {
 
-		return (String) getProperty(Key.type.name());
+		return (String) getProperty(Key.type);
 
 	}
 
@@ -459,7 +460,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 */
 	public String getName() {
 		
-		String name = getStringProperty(Key.name.name());
+		String name = getStringProperty(Key.name);
 		if (name == null) {
 			name = getNodeId().toString();
 		}
@@ -509,19 +510,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 */
 	@Override
 	public Date getDateProperty(final PropertyKey key) {
-
-		return getDateProperty(key.name());
-
-	}
-
-	/**
-	 * Returns the property value for the given key as a Date object.
-	 * 
-	 * @param key the property key to retrieve the value for
-	 * @return the property value for the given key as a Date object
-	 */
-	@Override
-	public Date getDateProperty(final String key) {
 
 		Object propertyValue = getProperty(key);
 
@@ -580,7 +568,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @return whether this node is visible to public users
 	 */
 	public boolean getVisibleToPublicUsers() {
-		return getBooleanProperty(Key.visibleToPublicUsers.name());
+		return getBooleanProperty(Key.visibleToPublicUsers);
 	}
 
 	/**
@@ -589,7 +577,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @return whether this node is visible to authenticated users
 	 */
 	public boolean getVisibleToAuthenticatedUsers() {
-		return getBooleanProperty(Key.visibleToPublicUsers.name());
+		return getBooleanProperty(Key.visibleToPublicUsers);
 	}
 
 	/**
@@ -598,7 +586,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @return whether this node is hidden
 	 */
 	public boolean getHidden() {
-		return getBooleanProperty(Key.hidden.name());
+		return getBooleanProperty(Key.hidden);
 	}
 
 	/**
@@ -607,7 +595,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @return whether this node is deleted
 	 */
 	public boolean getDeleted() {
-		return getBooleanProperty(Key.deleted.name());
+		return getBooleanProperty(Key.deleted);
 	}
 
 	/**
@@ -617,23 +605,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @return the property set for the given view
 	 */
 	@Override
-	public Iterable<String> getPropertyKeys(final String propertyView) {
+	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
 
 		return EntityContext.getPropertySet(this.getClass(), propertyView);
-
-	}
-
-	/**
-	 * Returns the (converted, validated, transformed, etc.) property for the given
-	 * property key.
-	 * 
-	 * @param propertyKey the property key to retrieve the value for
-	 * @return the converted, validated, transformed property value
-	 */
-	@Override
-	public Object getProperty(final PropertyKey propertyKey) {
-
-		return (getProperty(propertyKey.name()));
 
 	}
 
@@ -647,7 +621,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @return
 	 */
 	@Override
-	public Object getPropertyForIndexing(final String key) {
+	public Object getPropertyForIndexing(final PropertyKey key) {
 
 		Object rawValue = getProperty(key, false);
 		
@@ -669,11 +643,11 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @return the converted, validated, transformed property value
 	 */
 	@Override
-	public Object getProperty(final String key) {
+	public Object getProperty(final PropertyKey key) {
 		return getProperty(key, true);
 	}
 	
-	private Object getProperty(final String key, boolean applyConverter) {
+	private Object getProperty(final PropertyKey key, boolean applyConverter) {
 
 		if (key == null) {
 
@@ -710,11 +684,11 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				return propertyGroup.getGroupedProperties(this);
 			}
 
-			if (dbNode.hasProperty(key)) {
+			if (dbNode.hasProperty(key.name())) {
 
 				if ((key != null) && (dbNode != null)) {
 
-					value = dbNode.getProperty(key);
+					value = dbNode.getProperty(key.name());
 				}
 
 			} else {
@@ -766,7 +740,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 			// only apply converter if requested
 			// (required for getComparableProperty())
-			if(applyConverter) {
+			if (applyConverter) {
 
 				// apply property converters
 				PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
@@ -782,7 +756,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				}
 			}
 
-			if(!dontCache) {
+			if (!dontCache) {
 				
 				// only cache value if it is NOT the schema default
 				if(applyConverter) {
@@ -800,20 +774,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
-	/**
-	 * Returns the property value for the given key as a String object.
-	 * 
-	 * @param key the property key to retrieve the value for
-	 * @return the property value for the given key as a String object
-	 */
-	@Override
-	public String getStringProperty(final PropertyKey propertyKey) {
-
-		return (getStringProperty(propertyKey.name()));
-
-	}
-
-	public String getPropertyMD5(final String key) {
+	public String getPropertyMD5(final PropertyKey key) {
 
 		Object value = getProperty(key);
 
@@ -838,7 +799,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @return the property value for the given key as a String object
 	 */
 	@Override
-	public String getStringProperty(final String key) {
+	public String getStringProperty(final PropertyKey key) {
 
 		Object propertyValue = getProperty(key);
 		String result        = null;
@@ -864,20 +825,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @param key the property key to retrieve the value for
 	 * @return the property value for the given key as a List of Strings
 	 */
-	public List<String> getStringListProperty(final PropertyKey propertyKey) {
-
-		return (getStringListProperty(propertyKey.name()));
-
-	}
-
-	/**
-	 * Returns the property value for the given key as a List of Strings,
-	 * split on [\r\n].
-	 * 
-	 * @param key the property key to retrieve the value for
-	 * @return the property value for the given key as a List of Strings
-	 */
-	public List<String> getStringListProperty(final String key) {
+	public List<String> getStringListProperty(final PropertyKey key) {
 
 		Object propertyValue = getProperty(key);
 		List<String> result  = new LinkedList<String>();
@@ -911,19 +859,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @param key the property key to retrieve the value for
 	 * @return the property value for the given key as an Array of Strings
 	 */
-	public String getStringArrayPropertyAsString(final PropertyKey propertyKey) {
-
-		return (getStringArrayPropertyAsString(propertyKey.name()));
-
-	}
-
-	/**
-	 * Returns the property value for the given key as an Array of Strings.
-	 * 
-	 * @param key the property key to retrieve the value for
-	 * @return the property value for the given key as an Array of Strings
-	 */
-	public String getStringArrayPropertyAsString(final String key) {
+	public String getStringArrayPropertyAsString(final PropertyKey key) {
 
 		Object propertyValue = getProperty(key);
 		StringBuilder result = new StringBuilder();
@@ -951,15 +887,31 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	/**
-	 * Returns the property value for the given key as an Integer object.
+	 * Returns the property value for the given key as a Boolean object
 	 * 
 	 * @param key the property key to retrieve the value for
-	 * @return the property value for the given key as an Integer object
+	 * @return the property value for the given key as a Boolean object
 	 */
 	@Override
-	public Integer getIntProperty(final PropertyKey propertyKey) {
+	public boolean getBooleanProperty(final PropertyKey key) {
 
-		return (getIntProperty(propertyKey.name()));
+		Object propertyValue = getProperty(key);
+		Boolean result       = false;
+
+		if (propertyValue == null) {
+
+			return Boolean.FALSE;
+		}
+
+		if (propertyValue instanceof Boolean) {
+
+			result = ((Boolean) propertyValue);
+		} else if (propertyValue instanceof String) {
+
+			result = Boolean.parseBoolean(((String) propertyValue));
+		}
+
+		return result;
 
 	}
 
@@ -970,7 +922,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @return the property value for the given key as an Integer object
 	 */
 	@Override
-	public Integer getIntProperty(final String key) {
+	public Integer getIntProperty(final PropertyKey key) {
 
 		Object propertyValue = getProperty(key);
 		Integer result       = null;
@@ -1005,20 +957,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @return the property value for the given key as a Long object
 	 */
 	@Override
-	public Long getLongProperty(final PropertyKey propertyKey) {
-
-		return (getLongProperty(propertyKey.name()));
-
-	}
-
-	/**
-	 * Returns the property value for the given key as a Long object
-	 * 
-	 * @param key the property key to retrieve the value for
-	 * @return the property value for the given key as a Long object
-	 */
-	@Override
-	public Long getLongProperty(final String key) {
+	public Long getLongProperty(final PropertyKey key) {
 
 		Object propertyValue = getProperty(key);
 		Long result          = null;
@@ -1056,20 +995,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @return the property value for the given key as a Double object
 	 */
 	@Override
-	public Double getDoubleProperty(final PropertyKey propertyKey) throws FrameworkException {
-
-		return (getDoubleProperty(propertyKey.name()));
-
-	}
-
-	/**
-	 * Returns the property value for the given key as a Double object
-	 * 
-	 * @param key the property key to retrieve the value for
-	 * @return the property value for the given key as a Double object
-	 */
-	@Override
-	public Double getDoubleProperty(final String key) throws FrameworkException {
+	public Double getDoubleProperty(final PropertyKey key) throws FrameworkException {
 
 		Object propertyValue = getProperty(key);
 		Double result        = null;
@@ -1109,37 +1035,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	/**
-	 * Returns the property value for the given key as a Boolean object
-	 * 
-	 * @param key the property key to retrieve the value for
-	 * @return the property value for the given key as a Boolean object
-	 */
-	@Override
-	public boolean getBooleanProperty(final PropertyKey propertyKey) {
-
-		return (getBooleanProperty(propertyKey.name()));
-
-	}
-
-	/**
 	 * Returns the property value for the given key as a Comparable
 	 * 
 	 * @param key the property key to retrieve the value for
 	 * @return the property value for the given key as a Comparable
 	 */
 	@Override
-	public Comparable getComparableProperty(final PropertyKey propertyKey) {
-		return getComparableProperty(propertyKey.name());
-	}
-
-	/**
-	 * Returns the property value for the given key as a Comparable
-	 * 
-	 * @param key the property key to retrieve the value for
-	 * @return the property value for the given key as a Comparable
-	 */
-	@Override
-	public Comparable getComparableProperty(final String key) {
+	public Comparable getComparableProperty(PropertyKey key) {
 
 		Object propertyValue = getProperty(key, false);	// get "raw" property without converter
 		Class type = getClass();
@@ -1198,7 +1100,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 */
 	public AbstractNode getRelatedNode(PropertyKey propertyKey) {
 
-		RelationClass rc = EntityContext.getRelationClassForProperty(getClass(), propertyKey.name());
+		RelationClass rc = EntityContext.getRelationClassForProperty(getClass(), propertyKey);
 
 		if (rc != null) {
 
@@ -1240,7 +1142,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 */
 	public List<AbstractNode> getRelatedNodes(PropertyKey propertyKey) {
 
-		RelationClass rc = EntityContext.getRelationClassForProperty(getClass(), propertyKey.name());
+		RelationClass rc = EntityContext.getRelationClassForProperty(getClass(), propertyKey);
 
 		if (rc != null) {
 
@@ -1248,35 +1150,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		}
 
 		return Collections.emptyList();
-
-	}
-
-	/**
-	 * Returns the property value for the given key as a Boolean object
-	 * 
-	 * @param key the property key to retrieve the value for
-	 * @return the property value for the given key as a Boolean object
-	 */
-	@Override
-	public boolean getBooleanProperty(final String key) {
-
-		Object propertyValue = getProperty(key);
-		Boolean result       = false;
-
-		if (propertyValue == null) {
-
-			return Boolean.FALSE;
-		}
-
-		if (propertyValue instanceof Boolean) {
-
-			result = ((Boolean) propertyValue);
-		} else if (propertyValue instanceof String) {
-
-			result = Boolean.parseBoolean(((String) propertyValue));
-		}
-
-		return result;
 
 	}
 
@@ -1627,7 +1500,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	@Override
 	public boolean isVisibleToAuthenticatedUsers() {
 
-		return getBooleanProperty(Key.visibleToAuthenticatedUsers.name());
+		return getBooleanProperty(Key.visibleToAuthenticatedUsers);
 
 	}
 
@@ -1699,13 +1572,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	public void setCreatedBy(final String createdBy) throws FrameworkException {
 
-		setProperty(Key.createdBy.name(), createdBy);
+		setProperty(Key.createdBy, createdBy);
 
 	}
 
 	public void setCreatedDate(final Date date) throws FrameworkException {
 
-		setProperty(Key.createdDate.name(), date);
+		setProperty(Key.createdDate, date);
 
 	}
 
@@ -1717,57 +1590,50 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	public void setVisibilityStartDate(final Date date) throws FrameworkException {
 
-		setProperty(Key.visibilityStartDate.name(), date);
+		setProperty(Key.visibilityStartDate, date);
 
 	}
 
 	public void setVisibilityEndDate(final Date date) throws FrameworkException {
 
-		setProperty(Key.visibilityEndDate.name(), date);
+		setProperty(Key.visibilityEndDate, date);
 
 	}
 
 	public void setVisibleToPublicUsers(final boolean publicFlag) throws FrameworkException {
 
-		setProperty(Key.visibleToPublicUsers.name(), publicFlag);
+		setProperty(Key.visibleToPublicUsers, publicFlag);
 
 	}
 
 	public void setVisibleToAuthenticatedUsers(final boolean flag) throws FrameworkException {
 
-		setProperty(Key.visibleToAuthenticatedUsers.name(), flag);
+		setProperty(Key.visibleToAuthenticatedUsers, flag);
 
 	}
 
 //
 	public void setHidden(final boolean hidden) throws FrameworkException {
 
-		setProperty(Key.hidden.name(), hidden);
+		setProperty(Key.hidden, hidden);
 
 	}
 
 	public void setDeleted(final boolean deleted) throws FrameworkException {
 
-		setProperty(Key.deleted.name(), deleted);
+		setProperty(Key.deleted, deleted);
 
 	}
 
 	public void setType(final String type) throws FrameworkException {
 
-		setProperty(Key.type.name(), type);
+		setProperty(Key.type, type);
 
 	}
 
 	public void setName(final String name) throws FrameworkException {
 
-		setProperty(Key.name.name(), name);
-
-	}
-
-	@Override
-	public void setProperty(final PropertyKey propertyKey, final Object value) throws FrameworkException {
-
-		setProperty(propertyKey.name(), value);
+		setProperty(Key.name, name);
 
 	}
 
@@ -1780,15 +1646,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @param convertedValue
 	 */
 	@Override
-	public void setProperty(final String key, final Object value) throws FrameworkException {
+	public void setProperty(final PropertyKey key, final Object value) throws FrameworkException {
 
 		setProperty(key, value, updateIndexDefault);
-
-	}
-
-	public void setPropertyAsStringArray(final PropertyKey propertyKey, final String value) throws FrameworkException {
-
-		setPropertyAsStringArray(propertyKey.name(), value);
 
 	}
 
@@ -1799,17 +1659,11 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @param stringList
 	 *
 	 */
-	public void setPropertyAsStringArray(final String key, final String value) throws FrameworkException {
+	public void setPropertyAsStringArray(final PropertyKey key, final String value) throws FrameworkException {
 
 		String[] values = StringUtils.split(((String) value), "\r\n");
 
 		setProperty(key, values, updateIndexDefault);
-
-	}
-
-	public void setProperty(final PropertyKey propertyKey, final Object value, final boolean updateIndex) throws FrameworkException {
-
-		setProperty(propertyKey.name(), value, updateIndex);
 
 	}
 
@@ -1820,15 +1674,15 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @param value 
 	 */
 	public void setTemporaryProperty(final PropertyKey key, Object value) {
-		cachedConvertedProperties.put(key.name(), value);
-		cachedRawProperties.put(key.name(), value);
+		cachedConvertedProperties.put(key, value);
+		cachedRawProperties.put(key, value);
 	}
 	
 	/**
 	 * Retrieve a previously stored non-persistent value from this entity.
 	 */
 	public Object getTemporaryProperty(final PropertyKey key) {
-		return cachedConvertedProperties.get(key.name());
+		return cachedConvertedProperties.get(key);
 	}
 	
 	/**
@@ -1842,7 +1696,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @param convertedValue
 	 * @param updateIndex
 	 */
-	public void setProperty(final String key, final Object value, final boolean updateIndex) throws FrameworkException {
+	public void setProperty(final PropertyKey key, final Object value, final boolean updateIndex) throws FrameworkException {
 
 		Object oldValue = getProperty(key);
 
@@ -1869,7 +1723,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
-	private void setPropertyInternal(final String key, final Object value) throws FrameworkException {
+	private void setPropertyInternal(final PropertyKey key, final Object value) throws FrameworkException {
 
 		final Class type = this.getClass();
 
@@ -1877,12 +1731,12 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 			logger.log(Level.SEVERE, "Tried to set property with null key (action was denied)");
 
-			throw new FrameworkException(type.getSimpleName(), new NullArgumentToken("base"));
+			throw new FrameworkException(type.getSimpleName(), new NullArgumentToken(null));
 
 		}
 		
 		// check for read-only properties
-		if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && (dbNode != null) && dbNode.hasProperty(key))) {
+		if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && (dbNode != null) && dbNode.hasProperty(key.name()))) {
 
 			if (readOnlyPropertiesUnlocked) {
 
@@ -2009,7 +1863,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 							// save space
 							if (convertedValue == null) {
 
-								dbNode.removeProperty(key);
+								dbNode.removeProperty(key.name());
 							} else {
 
 								// Setting last modified date explicetely is not allowed
@@ -2017,10 +1871,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 									if (convertedValue instanceof Date) {
 
-										dbNode.setProperty(key, ((Date) convertedValue).getTime());
+										dbNode.setProperty(key.name(), ((Date) convertedValue).getTime());
 									} else {
 
-										dbNode.setProperty(key, convertedValue);
+										dbNode.setProperty(key.name(), convertedValue);
 
 										// set last modified date if not already happened
 										dbNode.setProperty(Key.lastModifiedDate.name(), (new Date()).getTime());

@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import org.structr.common.GraphObjectComparator.SortOrder;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -51,7 +52,7 @@ public class SuperUser implements Principal {
 	}
 
 	@Override
-	public void removeProperty(String key) throws FrameworkException {}
+	public void removeProperty(PropertyKey key) throws FrameworkException {}
 
 	@Override
 	public void grant(Permission permission, AccessControllable obj) {}
@@ -135,7 +136,7 @@ public class SuperUser implements Principal {
 	}
 
 //      @Override
-	public Object getPropertyForIndexing(String key) {
+	public Object getPropertyForIndexing(PropertyKey key) {
 
 		return null;
 
@@ -170,14 +171,7 @@ public class SuperUser implements Principal {
 	}
 
 	@Override
-	public Iterable<String> getPropertyKeys(String propertyView) {
-
-		return null;
-
-	}
-
-	@Override
-	public Object getProperty(String key) {
+	public Iterable<PropertyKey> getPropertyKeys(String propertyView) {
 
 		return null;
 
@@ -191,21 +185,7 @@ public class SuperUser implements Principal {
 	}
 
 	@Override
-	public String getStringProperty(String key) {
-
-		return null;
-
-	}
-
-	@Override
 	public String getStringProperty(PropertyKey propertyKey) {
-
-		return null;
-
-	}
-
-	@Override
-	public Integer getIntProperty(String key) {
 
 		return null;
 
@@ -219,13 +199,6 @@ public class SuperUser implements Principal {
 	}
 
 	@Override
-	public Date getDateProperty(String key) {
-
-		return null;
-
-	}
-
-	@Override
 	public Date getDateProperty(PropertyKey key) {
 
 		return null;
@@ -233,23 +206,9 @@ public class SuperUser implements Principal {
 	}
 
 	@Override
-	public boolean getBooleanProperty(String key) throws FrameworkException {
-
-		return false;
-
-	}
-
-	@Override
 	public boolean getBooleanProperty(PropertyKey key) throws FrameworkException {
 
 		return false;
-
-	}
-
-	@Override
-	public Double getDoubleProperty(String key) throws FrameworkException {
-
-		return null;
 
 	}
 
@@ -268,13 +227,6 @@ public class SuperUser implements Principal {
 	}
 
 	@Override
-	public Comparable getComparableProperty(String key) throws FrameworkException {
-
-		return null;
-
-	}
-
-	@Override
 	public PropertyKey getDefaultSortKey() {
 
 		return null;
@@ -282,7 +234,7 @@ public class SuperUser implements Principal {
 	}
 
 	@Override
-	public String getDefaultSortOrder() {
+	public SortOrder getDefaultSortOrder() {
 
 		return null;
 
@@ -297,13 +249,6 @@ public class SuperUser implements Principal {
 
 	@Override
 	public String getUuid() {
-
-		return null;
-
-	}
-
-	@Override
-	public Long getLongProperty(String key) {
 
 		return null;
 
@@ -365,9 +310,6 @@ public class SuperUser implements Principal {
 
 //      @Override
 	public void setBackendUser(boolean isBackendUser) throws FrameworkException {}
-
-	@Override
-	public void setProperty(String key, Object value) throws FrameworkException {}
 
 	@Override
 	public void setProperty(PropertyKey key, Object value) throws FrameworkException {}

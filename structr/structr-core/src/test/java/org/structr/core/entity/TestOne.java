@@ -52,8 +52,8 @@ public class TestOne extends AbstractNode {
 		EntityContext.registerPropertyConverter(TestOne.class, Key.aDate, DateConverter.class);
 		
 //		EntityContext.registerSearchablePropertySet(TestOne.class, NodeIndex.numeric.name(), Key.values());
-		EntityContext.registerSearchablePropertySet(TestOne.class, NodeIndex.fulltext.name(), Key.values());
-		EntityContext.registerSearchablePropertySet(TestOne.class, NodeIndex.keyword.name(), Key.values());
+		EntityContext.registerSearchablePropertySet(TestOne.class, NodeIndex.fulltext, Key.values());
+		EntityContext.registerSearchablePropertySet(TestOne.class, NodeIndex.keyword, Key.values());
 	}
 	
 //	@Override

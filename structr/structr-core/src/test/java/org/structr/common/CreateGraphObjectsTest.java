@@ -85,9 +85,9 @@ public class CreateGraphObjectsTest extends StructrTest {
 				fail("Should have raised an org.neo4j.graphdb.NotInTransactionException");
 			} catch (org.neo4j.graphdb.NotInTransactionException e) {}
 
-			final Map<String, Object> props = new HashMap<String, Object>();
+			final Map<PropertyKey, Object> props = new HashMap<PropertyKey, Object>();
 
-			props.put(AbstractNode.Key.type.name(), "UnknownTestTypeÄÖLß");
+			props.put(AbstractNode.Key.type, "UnknownTestTypeÄÖLß");
 
 			try {
 

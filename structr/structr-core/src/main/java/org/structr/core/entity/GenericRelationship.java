@@ -49,7 +49,7 @@ public class GenericRelationship extends AbstractRelationship {
 
 		EntityContext.registerPropertySet(GenericRelationship.class, PropertyView.All, Key.values());
 
-		EntityContext.registerSearchableProperty(GenericRelationship.class, RelationshipIndex.rel_uuid.name(), Key.uuid);
+		EntityContext.registerSearchableProperty(GenericRelationship.class, RelationshipIndex.rel_uuid, Key.uuid);
 		
 		// register start and end node for ui view
 		EntityContext.registerPropertySet(GenericRelationship.class, PropertyView.Ui, UiKey.values());
@@ -83,17 +83,17 @@ public class GenericRelationship extends AbstractRelationship {
 	}
 		
 	@Override
-	public Iterable<String> getPropertyKeys(String propertyView) {
+	public Iterable<PropertyKey> getPropertyKeys(String propertyView) {
 		
-		Set<String> keys = new LinkedHashSet<String>();
+		Set<PropertyKey> keys = new LinkedHashSet<PropertyKey>();
 		
-		keys.add(UiKey.startNodeId.name());
-		keys.add(UiKey.endNodeId.name());
+		keys.add(UiKey.startNodeId);
+		keys.add(UiKey.endNodeId);
 		
-		if(dbRelationship != null) {
+		if (dbRelationship != null) {
 			
-			for(String key : dbRelationship.getPropertyKeys()) {
-				keys.add(key);
+			for (String key : dbRelationship.getPropertyKeys()) {
+				keys.add(Key.valueOf(key));
 			}
 		}
 		

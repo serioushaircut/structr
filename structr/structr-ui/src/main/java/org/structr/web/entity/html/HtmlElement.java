@@ -246,8 +246,8 @@ public abstract class HtmlElement extends PageElement implements Element {
 		EntityContext.registerPropertySet(HtmlElement.class, PropertyView.Ui, UiKey.values());
 		EntityContext.registerPropertySet(HtmlElement.class, PropertyView.Ui, PropertyView.Html, htmlAttributes);
 		EntityContext.registerPropertySet(HtmlElement.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-		EntityContext.registerSearchablePropertySet(HtmlElement.class, NodeIndex.fulltext.name(), UiKey.values());
-		EntityContext.registerSearchablePropertySet(HtmlElement.class, NodeIndex.keyword.name(), UiKey.values());
+		EntityContext.registerSearchablePropertySet(HtmlElement.class, NodeIndex.fulltext, UiKey.values());
+		EntityContext.registerSearchablePropertySet(HtmlElement.class, NodeIndex.keyword, UiKey.values());
 		
 		EntityContext.registerPropertyRelation(HtmlElement.class, UiKey.parents, HtmlElement.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 		

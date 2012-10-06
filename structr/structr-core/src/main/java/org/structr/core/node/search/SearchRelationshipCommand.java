@@ -51,6 +51,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.entity.AbstractRelationship.Key;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -234,7 +235,7 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 						String key         = attr.getKey();
 						Object searchValue = attr.getValue();
 						SearchOperator op  = attr.getSearchOperator();
-						Object nodeValue   = rel.getProperty(key);
+						Object nodeValue   = rel.getProperty(Key.valueOf(key));
 
 						if (op.equals(SearchOperator.NOT)) {
 

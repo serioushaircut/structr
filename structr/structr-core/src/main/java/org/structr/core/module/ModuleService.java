@@ -228,7 +228,11 @@ public class ModuleService implements SingletonService {
 
 					}
 				}
-			} catch (Throwable t) {}
+			} catch (Throwable t) {
+			
+				logger.log(Level.SEVERE, "Something gone wrong", t);
+			
+			}
 
 		}
 
@@ -406,7 +410,7 @@ public class ModuleService implements SingletonService {
 								break;
 
 							}
-
+							
 						} catch (ClassNotFoundException ex) {
 
 							// ignore

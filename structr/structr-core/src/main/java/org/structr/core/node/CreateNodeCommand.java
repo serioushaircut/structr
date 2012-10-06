@@ -45,7 +45,9 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
+import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
+import org.structr.core.entity.AbstractNode.Key;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -68,41 +70,41 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 		if (graphDb != null) {
 
-			Date now                  = new Date();
-			Command createRel         = Services.command(securityContext, CreateRelationshipCommand.class);
-			Map<String, Object> attrs = new HashMap<String, Object>();
+			Date now			= new Date();
+			Command createRel		= Services.command(securityContext, CreateRelationshipCommand.class);
+			Map<PropertyKey, Object> attrs	= new HashMap<PropertyKey, Object>();
 
 			// initialize node from parameters...
 			for (Object o : parameters) {
 
 				if (o instanceof Map) {
 
-					Map<String, Object> map = (Map<String, Object>) o;
+					Map<PropertyKey, Object> map = (Map<PropertyKey, Object>) o;
 
 					attrs.putAll(map);
 
-				} else if (o instanceof Collection) {
-
-					Collection<NodeAttribute> c = (Collection) o;
-
-					for (NodeAttribute attr : c) {
-
-						attrs.put(attr.getKey(), attr.getValue());
-
-					}
-
-				} else if (o instanceof NodeAttribute) {
-
-					NodeAttribute attr = (NodeAttribute) o;
-
-					attrs.put(attr.getKey(), attr.getValue());
-
+//				} else if (o instanceof Collection) {
+//
+//					Collection<NodeAttribute> c = (Collection) o;
+//
+//					for (NodeAttribute attr : c) {
+//
+//						attrs.put(attr.getKey(), attr.getValue());
+//
+//					}
+//
+//				} else if (o instanceof NodeAttribute) {
+//
+//					NodeAttribute attr = (NodeAttribute) o;
+//
+//					attrs.put(attr.getKey(), attr.getValue());
+//
 				}
 
 			}
 
 			// Determine node type
-			Object typeObject = attrs.get(AbstractNode.Key.type.name());
+			Object typeObject = attrs.get(AbstractNode.Key.type);
 			String nodeType   = (typeObject != null)
 					    ? typeObject.toString()
 					    : "GenericNode";
@@ -111,8 +113,9 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 			
 			// Create node with type
-			node = nodeFactory.createNodeWithType(graphDb.createNode(), nodeType);
-			if(node != null) {
+			node = nodeFactory.createNewNodeInDatabaseWithType(graphDb.createNode(), nodeType);
+				
+			if (node != null) {
 				if ((user != null) && !(user instanceof SuperUser)) {
 
 					node.setOwner(user);
@@ -122,20 +125,20 @@ public class CreateNodeCommand extends NodeServiceCommand {
 					securityRel.setAllowed(Permission.values());
 					logger.log(Level.FINEST, "All permissions given to user {0}", user.getStringProperty(AbstractNode.Key.name));
 					node.unlockReadOnlyPropertiesOnce();
-					node.setProperty(AbstractNode.Key.createdBy.name(), user.getProperty(AbstractNode.Key.uuid), false);
+					node.setProperty(AbstractNode.Key.createdBy, user.getProperty(AbstractNode.Key.uuid), false);
 
 				}
 
 				node.unlockReadOnlyPropertiesOnce();
-				node.setProperty(AbstractNode.Key.createdDate.name(), now, false);
-				node.setProperty(AbstractNode.Key.lastModifiedDate.name(), now, false);
+				node.setProperty(AbstractNode.Key.createdDate, now, false);
+				node.setProperty(AbstractNode.Key.lastModifiedDate, now, false);
 				logger.log(Level.FINE, "Node {0} created", node.getId());
 
 				// set type first!!
-				node.setProperty(AbstractNode.Key.type.name(), nodeType);
-				attrs.remove(AbstractNode.Key.type.name());
+				node.setProperty(AbstractNode.Key.type, nodeType);
+				attrs.remove(AbstractNode.Key.type);
 
-				for (Entry<String, Object> attr : attrs.entrySet()) {
+				for (Entry<PropertyKey, Object> attr : attrs.entrySet()) {
 
 					Object value = attr.getValue();
 					node.setProperty(attr.getKey(), value);

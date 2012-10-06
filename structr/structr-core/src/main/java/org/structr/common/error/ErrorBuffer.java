@@ -22,6 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.Map;
+import org.structr.common.PropertyKey;
 
 /**
  * A buffer that collects error tokens to allow for i18n
@@ -31,7 +32,7 @@ import java.util.Map;
  */
 public class ErrorBuffer {
 
-	private Map<String, Map<String, Set<ErrorToken>>> tokens = new LinkedHashMap<String, Map<String, Set<ErrorToken>>>();
+	private Map<String, Map<PropertyKey, Set<ErrorToken>>> tokens = new LinkedHashMap<String, Map<PropertyKey, Set<ErrorToken>>>();
 
 	public void add(String type, ErrorToken msg) {
 		getTokenSet(type, msg.getKey()).add(msg);
@@ -41,16 +42,16 @@ public class ErrorBuffer {
 		return !tokens.isEmpty();
 	}
 
-	public Map<String, Map<String, Set<ErrorToken>>> getErrorTokens() {
+	public Map<String, Map<PropertyKey, Set<ErrorToken>>> getErrorTokens() {
 		return tokens;
 	}
 
 	// ----- private methods -----
-	private Set<ErrorToken> getTokenSet(String type, String key) {
+	private Set<ErrorToken> getTokenSet(String type, PropertyKey key) {
 
-		Map<String, Set<ErrorToken>> map = getTypeSet(type);
+		Map<PropertyKey, Set<ErrorToken>> map = getTypeSet(type);
 		Set<ErrorToken> list = map.get(key);
-		if(list == null) {
+		if (list == null) {
 			list = new LinkedHashSet<ErrorToken>();
 			map.put(key, list);
 		}
@@ -58,11 +59,11 @@ public class ErrorBuffer {
 		return list;
 	}
 
-	private Map<String, Set<ErrorToken>> getTypeSet(String type) {
+	private Map<PropertyKey, Set<ErrorToken>> getTypeSet(String type) {
 
-		Map<String, Set<ErrorToken>> map = tokens.get(type);
-		if(map == null) {
-			map = new LinkedHashMap<String, Set<ErrorToken>>();
+		Map<PropertyKey, Set<ErrorToken>> map = tokens.get(type);
+		if (map == null) {
+			map = new LinkedHashMap<PropertyKey, Set<ErrorToken>>();
 			tokens.put(type, map);
 		}
 

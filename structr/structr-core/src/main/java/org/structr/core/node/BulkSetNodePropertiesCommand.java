@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -74,7 +75,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand {
 			throw new IllegalArgumentException("This command requires one argument of type Map. Map must not be empty.");
 		}
 
-		final Map<String, Object> properties = (Map<String, Object>) parameters[0];
+		final Map<PropertyKey, Object> properties = (Map<PropertyKey, Object>) parameters[0];
 
 		if (graphDb != null) {
 
@@ -88,15 +89,15 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand {
 					long n        = 0L;
 					Result result = null;
 
-					if (properties.containsKey(AbstractNode.Key.type.name())) {
+					if (properties.containsKey(AbstractNode.Key.type)) {
 
 						List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
-						attrs.add(Search.andExactType((String) properties.get(AbstractNode.Key.type.name())));
+						attrs.add(Search.andExactType((String) properties.get(AbstractNode.Key.type)));
 
 						result = (Result) searchNode.execute(null, false, false, attrs);
 
-						properties.remove(AbstractNode.Key.type.name());
+						properties.remove(AbstractNode.Key.type);
 
 					} else {
 
@@ -112,8 +113,8 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand {
 
 							for (Entry entry : properties.entrySet()) {
 
-								String key = (String) entry.getKey();
-								Object val = entry.getValue();
+								PropertyKey key = (PropertyKey) entry.getKey();
+								Object val	= entry.getValue();
 
 								node.unlockReadOnlyPropertiesOnce();
 								node.setProperty(key, val);

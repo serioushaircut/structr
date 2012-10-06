@@ -21,6 +21,7 @@ package org.structr.core;
 
 import java.util.Date;
 import java.util.Map;
+import org.structr.common.GraphObjectComparator.SortOrder;
 import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -34,7 +35,7 @@ import org.structr.core.entity.AbstractRelationship;
  * @author Christian Morgner
  */
 public interface GraphObject {
-
+	
 	// ----- methods common to both types -----
 	/**
 	 * Returns the database ID of this graph object.
@@ -63,17 +64,8 @@ public interface GraphObject {
 	 * @param propertyView
 	 * @return the property set for the given view
 	 */
-	public Iterable<String> getPropertyKeys(String propertyView);
+	public Iterable<PropertyKey> getPropertyKeys(String propertyView);
 	
-	/**
-	 * Sets the property with the given key to the given value.
-	 * 
-	 * @param key the property key to set
-	 * @param value the value to set
-	 * @throws FrameworkException 
-	 */
-	public void setProperty(final String key, Object value) throws FrameworkException;
-
 	/**
 	 * Sets the property with the given key to the given value.
 	 * 
@@ -82,7 +74,6 @@ public interface GraphObject {
 	 * @throws FrameworkException 
 	 */
 	public void setProperty(final PropertyKey key, Object value) throws FrameworkException;
-	
 
 	/**
 	 * Returns the (converted, validated, transformed, etc.) property for the given
@@ -91,17 +82,7 @@ public interface GraphObject {
 	 * @param propertyKey the property key to retrieve the value for
 	 * @return the converted, validated, transformed property value
 	 */
-	public Object getProperty(final String key);
-
-
-	/**
-	 * Returns the (converted, validated, transformed, etc.) property for the given
-	 * property key.
-	 * 
-	 * @param propertyKey the property key to retrieve the value for
-	 * @return the converted, validated, transformed property value
-	 */
-	public Object getProperty(final PropertyKey propertyKey);
+	public Object getProperty(final PropertyKey key);
 
 	/**
 	 * Returns the property value for the given key as a String object.
@@ -109,23 +90,7 @@ public interface GraphObject {
 	 * @param key the property key to retrieve the value for
 	 * @return the property value for the given key as a String object
 	 */
-	public String getStringProperty(final String key);
-
-	/**
-	 * Returns the property value for the given key as a String object.
-	 * 
-	 * @param key the property key to retrieve the value for
-	 * @return the property value for the given key as a String object
-	 */
-	public String getStringProperty(final PropertyKey propertyKey);
-
-	/**
-	 * Returns the property value for the given key as an Integer object.
-	 * 
-	 * @param key the property key to retrieve the value for
-	 * @return the property value for the given key as an Integer object
-	 */
-	public Integer getIntProperty(final String key);
+	public String getStringProperty(final PropertyKey key);
 
 	/**
 	 * Returns the property value for the given key as an Integer object.
@@ -141,23 +106,7 @@ public interface GraphObject {
 	 * @param key the property key to retrieve the value for
 	 * @return the property value for the given key as a Long object
 	 */
-	public Long getLongProperty(final String key);
-
-	/**
-	 * Returns the property value for the given key as a Long object
-	 * 
-	 * @param key the property key to retrieve the value for
-	 * @return the property value for the given key as a Long object
-	 */
 	public Long getLongProperty(final PropertyKey propertyKey);
-
-	/**
-	 * Returns the property value for the given key as a Date object
-	 * 
-	 * @param key the property key to retrieve the value for
-	 * @return the property value for the given key as a Date object
-	 */
-	public Date getDateProperty(final String key);
 
 	/**
 	 * Returns the property value for the given key as a Date object
@@ -173,23 +122,7 @@ public interface GraphObject {
 	 * @param key the property key to retrieve the value for
 	 * @return the property value for the given key as a Boolean object
 	 */
-	public boolean getBooleanProperty(final String key) throws FrameworkException ;
-
-	/**
-	 * Returns the property value for the given key as a Boolean object
-	 * 
-	 * @param key the property key to retrieve the value for
-	 * @return the property value for the given key as a Boolean object
-	 */
         public boolean getBooleanProperty(final PropertyKey key) throws FrameworkException ;
-
-	/**
-	 * Returns the property value for the given key as a Double object
-	 * 
-	 * @param key the property key to retrieve the value for
-	 * @return the property value for the given key as a Double object
-	 */
-	public Double getDoubleProperty(final String key) throws FrameworkException ;
 
 	/**
 	 * Returns the property value for the given key as a Double object
@@ -200,6 +133,15 @@ public interface GraphObject {
         public Double getDoubleProperty(final PropertyKey key) throws FrameworkException ;
 
 	/**
+	 * Returns the property value for the given key that will be used
+	 * for indexing.
+	 * 
+	 * @param key the key to index the value for
+	 * @return the property value for indexing
+	 */
+	public Object getPropertyForIndexing(final PropertyKey key);
+
+	/**
 	 * Returns the property value for the given key as a Comparable
 	 * 
 	 * @param key the property key to retrieve the value for
@@ -208,29 +150,12 @@ public interface GraphObject {
 	public Comparable getComparableProperty(final PropertyKey key) throws FrameworkException;
 
 	/**
-	 * Returns the property value for the given key that will be used
-	 * for indexing.
-	 * 
-	 * @param key the key to index the value for
-	 * @return the property value for indexing
-	 */
-	public Object getPropertyForIndexing(final String key);
-
-	/**
-	 * Returns the property value for the given key as a Comparable
-	 * 
-	 * @param key the property key to retrieve the value for
-	 * @return the property value for the given key as a Comparable
-	 */
-	public Comparable getComparableProperty(final String key) throws FrameworkException;
-
-	/**
 	 * Removes the property value for the given key from this graph object.
 	 * 
 	 * @param key the key to remove the value for
 	 * @throws FrameworkException 
 	 */
-	public void removeProperty(final String key) throws FrameworkException;
+	public void removeProperty(final PropertyKey key) throws FrameworkException;
 	
 	/**
 	 * Returns the default sort key for this entitiy.
@@ -244,7 +169,7 @@ public interface GraphObject {
 	 * 
 	 * @return the default sort order
 	 */
-	public String getDefaultSortOrder();
+	public SortOrder getDefaultSortOrder();
 
 	/**
 	 * Unlock all read-only properties in this entitiy for a single <code>setProperty</code>

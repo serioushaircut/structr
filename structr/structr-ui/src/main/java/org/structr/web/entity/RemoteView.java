@@ -43,8 +43,8 @@ public class RemoteView extends View {
 		EntityContext.registerPropertySet(RemoteView.class, PropertyView.Ui,     Key.values());
 		EntityContext.registerEntityRelation(RemoteView.class, Page.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(RemoteView.class, Element.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
-		EntityContext.registerSearchablePropertySet(RemoteView.class, NodeIndex.fulltext.name(), UiKey.values());
-		EntityContext.registerSearchablePropertySet(RemoteView.class, NodeIndex.keyword.name(), UiKey.values());
+		EntityContext.registerSearchablePropertySet(RemoteView.class, NodeIndex.fulltext, UiKey.values());
+		EntityContext.registerSearchablePropertySet(RemoteView.class, NodeIndex.keyword, UiKey.values());
 	}
 	
 	@Override

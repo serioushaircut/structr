@@ -30,7 +30,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.node.NodeService;
+import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.core.node.NodeServiceCommand;
 
 /**
@@ -44,7 +44,7 @@ public class CountEntitiesCommand extends NodeServiceCommand {
 	@Override
 	public Object execute(Object... parameters) throws FrameworkException {
 		
-		Index<Node> index = (Index<Node>)arguments.get(NodeService.NodeIndex.keyword.name());
+		Index<Node> index = (Index<Node>)arguments.get(NodeIndex.keyword.name());
 		String lowerTerm = null;
 		String upperTerm = null;
 		String type = null;

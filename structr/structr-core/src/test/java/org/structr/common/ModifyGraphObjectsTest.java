@@ -122,7 +122,7 @@ public class ModifyGraphObjectsTest extends StructrTest {
 
 			AbstractRelationship rel = ((List<AbstractRelationship>) createTestRelationships(RelType.UNDEFINED, 1)).get(0);
 
-			String key1 = "jghsdkhgshdhgsdjkfgh";
+			PropertyKey key1 = AbstractRelationship.Key.valueOf("ü09jsofjsöf");
 			String val1 = "54354354546806849870";
 
 			// Modify values

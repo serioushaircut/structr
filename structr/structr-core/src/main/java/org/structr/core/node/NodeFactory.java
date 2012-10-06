@@ -34,7 +34,6 @@ import org.structr.common.ThreadLocalCommand;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
 import org.structr.core.Command;
-import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.*;
@@ -77,11 +76,15 @@ public class NodeFactory<T extends AbstractNode> {
 
 	//~--- constructors ---------------------------------------------------
 
+	/**
+	 * Use this constructor to create new nodes
+	 * 
+	 * @param graphDb 
+	 */
 	public NodeFactory() {}
 
 	public NodeFactory(final SecurityContext securityContext) {
 
-		factoryProfile = new FactoryProfile(securityContext);
 
 	}
 
@@ -111,18 +114,50 @@ public class NodeFactory<T extends AbstractNode> {
 
 	public AbstractNode createNode(final Node node) throws FrameworkException {
 
-		String type     = AbstractNode.Key.type.name();
-		String nodeType = node.hasProperty(type)
-				  ? (String) node.getProperty(type)
+		String nodeType = node.hasProperty(AbstractNode.Key.type.name())
+				  ? (String) node.getProperty(AbstractNode.Key.type.name())
 				  : "GenericNode";
+		
+		Class nodeClass = (Class) getEntityClassCommand.get().execute(nodeType);
+		
+		if (nodeClass == null) {
+			
+			nodeClass = GenericNode.class;
+			
+		}
 
-		return createNodeWithType(node, nodeType);
+		return createNode(node, nodeClass);
 
 	}
 
-	public AbstractNode createNodeWithType(final Node node, final String nodeType) throws FrameworkException {
+//      public AbstractNode createNodeWithType(final Node node, final String nodeType) throws FrameworkException {
+//
+//              Class nodeClass = (Class) getEntityClassCommand.get().execute(nodeType);
+//
+//              if (nodeClass == null) {
+//
+//                      nodeClass = GenericNode.class;
+//              }
+//
+//              return createNode(node, nodeClass);
+//
+//      }
+//      public AbstractNode createNewNodeInDatabaseWithType(final Class nodeClass) throws FrameworkException {
+//
+//              Node node = graphDb.createNode();
+//
+//              return createNode(node, nodeClass);
+//
+//      }
+	public AbstractNode createNewNodeInDatabaseWithType(final Node node, final String nodeType) throws FrameworkException {
 
-		Class nodeClass      = (Class) getEntityClassCommand.get().execute(nodeType);
+		node.setProperty(AbstractNode.Key.type.name(), nodeType);
+
+		return createNode(node);
+	}
+
+	public AbstractNode createNode(final Node node, final Class nodeClass) throws FrameworkException {
+
 		AbstractNode newNode = null;
 
 		if (nodeClass != null) {
@@ -157,15 +192,16 @@ public class NodeFactory<T extends AbstractNode> {
 
 		newNode.init(factoryProfile.getSecurityContext(), node);
 		newNode.onNodeInstantiation();
-		newNode.setType(nodeType);
+
+		//newNode.setType(nodeClass.getSimpleName());
 
 		// check access
-              if (factoryProfile.getSecurityContext().isReadable(newNode, factoryProfile.includeDeletedAndHidden(), factoryProfile.publicOnly())) {
-		return newNode;
+		if (factoryProfile.getSecurityContext().isReadable(newNode, factoryProfile.includeDeletedAndHidden(), factoryProfile.publicOnly())) {
 
-              }
+			return newNode;
+		}
 
-	      return null;
+		return null;
 
 	}
 
@@ -293,7 +329,6 @@ public class NodeFactory<T extends AbstractNode> {
 	}
 
 	// <editor-fold defaultstate="collapsed" desc="private methods">
-
 	private List<Node> read(final Iterable<Node> it) {
 
 		List<Node> nodes = new LinkedList();
@@ -531,7 +566,7 @@ public class NodeFactory<T extends AbstractNode> {
 
 				AbstractNode n = createNode(realNode);
 
-				// Check is done in createNodeWithType already, so we don't have to do it again
+				// Check is done in createNode already, so we don't have to do it again
 				if (n != null) {    // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
 
 					List<AbstractNode> nodesAt = getNodesAt(n);

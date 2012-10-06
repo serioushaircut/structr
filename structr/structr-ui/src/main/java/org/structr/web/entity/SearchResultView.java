@@ -28,7 +28,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.RelationClass;
-import org.structr.core.node.NodeService;
+import org.structr.core.node.NodeService.NodeIndex;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -45,8 +45,8 @@ public class SearchResultView extends View {
 		EntityContext.registerPropertySet(SearchResultView.class, PropertyView.Ui, Key.values());
 		EntityContext.registerEntityRelation(SearchResultView.class, Page.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(SearchResultView.class, Element.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerSearchablePropertySet(SearchResultView.class, NodeService.NodeIndex.fulltext.name(), Key.values());
-		EntityContext.registerSearchablePropertySet(SearchResultView.class, NodeService.NodeIndex.keyword.name(), Key.values());
+		EntityContext.registerSearchablePropertySet(SearchResultView.class, NodeIndex.fulltext, Key.values());
+		EntityContext.registerSearchablePropertySet(SearchResultView.class, NodeIndex.keyword, Key.values());
 
 	}
 

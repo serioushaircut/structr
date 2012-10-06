@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.search.Search;
@@ -73,7 +74,7 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand {
                         
                 }
                 
-                final Map<String, Object> properties = (Map<String, Object>) parameters[0];
+                final Map<PropertyKey, Object> properties = (Map<PropertyKey, Object>) parameters[0];
 
 		if (graphDb != null) {
 
@@ -87,13 +88,13 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand {
 					long n                  = 0L;
                                         List<AbstractRelationship> rels = null;
                                         
-                                        if (properties.containsKey(AbstractRelationship.HiddenKey.combinedType.name())) {
+                                        if (properties.containsKey(AbstractRelationship.HiddenKey.combinedType)) {
                                                 
                                                 List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-                                                attrs.add(Search.andExactType((String) properties.get(AbstractRelationship.HiddenKey.combinedType.name())));
+                                                attrs.add(Search.andExactType((String) properties.get(AbstractRelationship.HiddenKey.combinedType)));
                                                 
                                                 rels = (List<AbstractRelationship>) searchRel.execute(attrs);
-                                                properties.remove(AbstractRelationship.HiddenKey.combinedType.name());
+                                                properties.remove(AbstractRelationship.HiddenKey.combinedType);
                                                 
                                         } else {
                                         
@@ -107,8 +108,8 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand {
 
 							for (Entry entry : properties.entrySet()) {
                                                                 
-                                                                String key = (String) entry.getKey();
-                                                                Object val = entry.getValue();
+                                                                PropertyKey key	= (PropertyKey) entry.getKey();
+                                                                Object val	= entry.getValue();
                                                                 
                                                                 rel.setProperty(key, val);
                                                                 

@@ -143,7 +143,7 @@ public class AuthHelper {
 		Principal user              = null;
 		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
-		attrs.add(Search.andExactProperty(Principal.Key.sessionId, messageToken));
+		attrs.add(Search.andExactProperty(Principal.Key.sessionId.name(), messageToken));
 		attrs.add(Search.andExactType("User"));
 
 		try {

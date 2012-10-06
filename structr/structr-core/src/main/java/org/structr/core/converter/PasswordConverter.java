@@ -21,6 +21,7 @@ package org.structr.core.converter;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
+import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.TooShortToken;
@@ -42,7 +43,7 @@ public class PasswordConverter extends PropertyConverter<String, String> {
 			if (validationInfo != null) {
 
 				String errorType = validationInfo.getErrorType();
-				String errorKey  = validationInfo.getErrorKey();
+				PropertyKey errorKey  = validationInfo.getErrorKey();
 				int minLength    = validationInfo.getMinLength();
 
 				if (minLength > 0 && clearTextPassword.length() < minLength) {
@@ -63,10 +64,10 @@ public class PasswordConverter extends PropertyConverter<String, String> {
 	public static class ValidationInfo implements Value<ValidationInfo> {
 
 		private String errorType = null;
-		private String errorKey = null;
+		private PropertyKey errorKey = null;
 		private int minLength = -1;
 
-		public ValidationInfo(String errorType, String errorKey, int minLength) {
+		public ValidationInfo(String errorType, PropertyKey errorKey, int minLength) {
 			this.errorType = errorType;
 			this.errorKey  = errorKey;
 			this.minLength = minLength;
@@ -85,7 +86,7 @@ public class PasswordConverter extends PropertyConverter<String, String> {
 			return errorType;
 		}
 
-		public String getErrorKey() {
+		public PropertyKey getErrorKey() {
 			return errorKey;
 		}
 

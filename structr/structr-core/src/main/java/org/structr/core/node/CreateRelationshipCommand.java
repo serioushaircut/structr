@@ -45,6 +45,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -120,7 +121,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 			Object arg4 = parameters[4];                 // check duplicates
 
 			// parameters
-			Map<String, Object> properties = null;
+			Map<PropertyKey, Object> properties = null;
 			RelationshipType relType       = null;
 
 			if (arg2 instanceof String) {
@@ -139,7 +140,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
 			if (arg3 instanceof Map) {
 
-				properties = (Map<String, Object>) arg3;
+				properties = (Map<PropertyKey, Object>) arg3;
 
 			}
 
@@ -167,12 +168,12 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 						if (rel.getRelType().equals(relType) && rel.getStartNode().equals(startNode)) {
 
                                                         // At least one property of new rel has to be different to the tested existing node
-							Map<String, Object> relProps = rel.getProperties();
+							Map<PropertyKey, Object> relProps = rel.getProperties();
 							boolean propsEqual           = true;
 
 							for (Entry entry : properties.entrySet()) {
 
-								String key = (String) entry.getKey();
+								PropertyKey key = (PropertyKey) entry.getKey();
 								Object val = entry.getValue();
 
 								if (!relProps.containsKey(key) || !relProps.get(key).equals(val)) {
@@ -212,7 +213,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		return null;
 	}
 
-	private synchronized AbstractRelationship createRelationship(final AbstractNode fromNode, final AbstractNode toNode, final RelationshipType relType, final Map<String, Object> properties)
+	private synchronized AbstractRelationship createRelationship(final AbstractNode fromNode, final AbstractNode toNode, final RelationshipType relType, final Map<PropertyKey, Object> properties)
 		throws FrameworkException {
 
 		return (AbstractRelationship) Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
@@ -225,7 +226,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 				Relationship rel            = startNode.createRelationshipTo(endNode, relType);
 				AbstractRelationship newRel = relationshipFactory.createRelationship(securityContext, rel);
 
-				newRel.setProperty(AbstractRelationship.HiddenKey.createdDate.name(), new Date());
+				newRel.setProperty(AbstractRelationship.HiddenKey.createdDate, new Date());
 
 				if (newRel != null) {
 

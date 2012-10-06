@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.PropertyKey;
 import org.structr.core.entity.AbstractNode;
 
 //~--- classes ----------------------------------------------------------------
@@ -56,7 +57,7 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 
 	//~--- fields ---------------------------------------------------------
 
-	private Map<String, Index> indices = new HashMap<String, Index>();
+	private Map<Enum, Index<Relationship>> indices = new HashMap();
 
 	//~--- methods --------------------------------------------------------
 
@@ -67,13 +68,13 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 
 		for (Enum indexName : (RelationshipIndex[]) arguments.get("relationshipIndices")) {
 
-			indices.put(indexName.name(), (Index<Relationship>) arguments.get(indexName.name()));
+			indices.put(indexName, (Index<Relationship>) arguments.get(indexName));
 
 		}
 
 		long id                  = 0;
 		AbstractRelationship rel = null;
-		String key               = null;
+		PropertyKey key          = null;
 
 		switch (parameters.length) {
 
@@ -129,9 +130,9 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 
 				}
 
-				if (parameters[1] instanceof String) {
+				if (parameters[1] instanceof PropertyKey) {
 
-					key = (String) parameters[1];
+					key = (PropertyKey) parameters[1];
 
 				}
 
@@ -175,7 +176,7 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 
 		}
 
-		String combinedKey = rel.getStringProperty(AbstractRelationship.HiddenKey.combinedType.name());
+		String combinedKey = rel.getStringProperty(AbstractRelationship.HiddenKey.combinedType);
 
 		if (combinedKey == null) {
 
@@ -187,8 +188,8 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 				// add a special combinedType key, consisting of the relationship combinedType, the combinedType of the start node and the combinedType of the end node
 				String tripleKey = EntityContext.createCombinedRelationshipType(startNode.getType(), rel.getType(), endNode.getType());
 
-				rel.setProperty(AbstractRelationship.HiddenKey.combinedType.name(), Search.clean(tripleKey));
-				indexProperty(rel, AbstractRelationship.HiddenKey.combinedType.name());
+				rel.setProperty(AbstractRelationship.HiddenKey.combinedType, Search.clean(tripleKey));
+				indexProperty(rel, AbstractRelationship.HiddenKey.combinedType);
 				
 			} else {
 				
@@ -196,14 +197,14 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 			}
 		}
 
-		for (String key : rel.getPropertyKeys()) {
+		for (PropertyKey key : rel.getPropertyKeys()) {
 
 			indexProperty(rel, key);
 
 		}
 	}
 
-	private void indexProperty(final AbstractRelationship rel, final String key) {
+	private void indexProperty(final AbstractRelationship rel, final PropertyKey key) {
 
 		// String combinedType = node.getClass().getSimpleName();
 		Relationship dbRel = rel.getRelationship();
@@ -217,12 +218,12 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 
 		}
 
-		boolean emptyKey = StringUtils.isEmpty((String) key);
+		boolean emptyKey = (StringUtils.isBlank(key.name()));
 
 		if (emptyKey) {
 
 			logger.log(Level.SEVERE, "Relationship {0} has empty, not-null key, removing property", new Object[] { id });
-			dbRel.removeProperty(key);
+			dbRel.removeProperty(key.name());
 
 			return;
 
@@ -252,13 +253,13 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 		if (value == null) {
 
 			logger.log(Level.FINE, "Node {0} has null value for key {1}, removing property", new Object[] { id, key });
-			dbRel.removeProperty(key);
+			dbRel.removeProperty(key.name());
 			removeRelationshipPropertyFromAllIndices(dbRel, key);
 
 		} else if (emptyValue) {
 
 			logger.log(Level.FINE, "Node {0} has empty, non-null value for key {1}, removing property", new Object[] { id, key });
-			dbRel.removeProperty(key);
+			dbRel.removeProperty(key.name());
 			removeRelationshipPropertyFromAllIndices(dbRel, key);
 
 		} else {
@@ -269,7 +270,7 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 			addRelationshipPropertyToFulltextIndex(dbRel, key, valueForIndexing);
 			addRelationshipPropertyToKeywordIndex(dbRel, key, valueForIndexing);
 
-			if (key.equals(AbstractRelationship.Key.uuid.name())) {
+			if (key.equals(AbstractRelationship.Key.uuid)) {
 
 				addRelationshipPropertyToUuidIndex(dbRel, key, valueForIndexing);
 
@@ -279,33 +280,33 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 		}
 	}
 
-	private void removeRelationshipPropertyFromAllIndices(final Relationship rel, final String key) {
+	private void removeRelationshipPropertyFromAllIndices(final Relationship rel, final PropertyKey key) {
 
 		for (Enum indexName : (RelationshipIndex[]) arguments.get("relationshipIndices")) {
 
-			indices.get(indexName.name()).remove(rel, key);
+			indices.get(indexName).remove(rel, key.name());
 
 		}
 	}
 
-	private void addRelationshipPropertyToFulltextIndex(final Relationship rel, final String key, final Object value) {
-		Index<Relationship> index = indices.get(RelationshipIndex.rel_fulltext.name());
+	private void addRelationshipPropertyToFulltextIndex(final Relationship rel, final PropertyKey key, final Object value) {
+		Index<Relationship> index = indices.get(RelationshipIndex.rel_fulltext);
 		synchronized(index) {
-			index.add(rel, key, value);
+			index.add(rel, key.name(), value);
 		}
 	}
 
-	private void addRelationshipPropertyToUuidIndex(final Relationship rel, final String key, final Object value) {
-		Index<Relationship> index = indices.get(RelationshipIndex.rel_uuid.name());
+	private void addRelationshipPropertyToUuidIndex(final Relationship rel, final PropertyKey key, final Object value) {
+		Index<Relationship> index = indices.get(RelationshipIndex.rel_uuid);
 		synchronized(index) {
-			index.add(rel, key, value);
+			index.add(rel, key.name(), value);
 		}
 	}
 
-	private void addRelationshipPropertyToKeywordIndex(final Relationship rel, final String key, final Object value) {
-		Index<Relationship> index = indices.get(RelationshipIndex.rel_keyword.name());
+	private void addRelationshipPropertyToKeywordIndex(final Relationship rel, final PropertyKey key, final Object value) {
+		Index<Relationship> index = indices.get(RelationshipIndex.rel_keyword);
 		synchronized(index) {
-			index.add(rel, key, value);
+			index.add(rel, key.name(), value);
 		}
 	}
 }

@@ -39,7 +39,6 @@ import org.structr.core.node.NodeService.NodeIndex;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.LinkedList;
 import java.util.List;
 
 //~--- classes ----------------------------------------------------------------
@@ -54,16 +53,16 @@ public class User extends Person implements Principal {
 	// private static final Logger logger = Logger.getLogger(User.class.getName());
 	static {
 
-		EntityContext.registerPropertyConverter(User.class, Key.password.name(), PasswordConverter.class);
+		EntityContext.registerPropertyConverter(User.class, Key.password, PasswordConverter.class);
 		EntityContext.registerPropertySet(User.class, PropertyView.All, Key.values());
 		EntityContext.registerPropertySet(User.class, PropertyView.Ui, Key.values());
 		EntityContext.registerPropertySet(User.class, PropertyView.Public, Key.realName);
 		EntityContext.registerEntityRelation(User.class, Group.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 
 		// EntityContext.registerEntityRelation(User.class, LogNodeList.class, RelType.OWNS, Direction.OUTGOING, Cardinality.OneToOne);
-		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.user.name(), UserIndexKey.values());
-		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.fulltext.name(), Key.values());
-		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.keyword.name(), Key.values());
+		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.user, UserIndexKey.values());
+		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.fulltext, Key.values());
+		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.keyword, Key.values());
 		EntityContext.registerPropertyConverter(User.class, User.Key.backendUser, BooleanConverter.class);
 		EntityContext.registerPropertyConverter(User.class, User.Key.frontendUser, BooleanConverter.class);
 

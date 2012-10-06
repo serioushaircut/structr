@@ -20,6 +20,7 @@
 package org.structr.common;
 
 import java.util.Comparator;
+import org.structr.common.GraphObjectComparator.SortOrder;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -31,7 +32,7 @@ public class AbstractNodePropertyComparator implements Comparator<AbstractNode> 
 
 	private GraphObjectComparator comparator = null;
 	
-	public AbstractNodePropertyComparator(String sortKey, String sortOrder) {
+	public AbstractNodePropertyComparator(PropertyKey sortKey, SortOrder sortOrder) {
 		comparator = new GraphObjectComparator(sortKey, sortOrder);
 	}
 	

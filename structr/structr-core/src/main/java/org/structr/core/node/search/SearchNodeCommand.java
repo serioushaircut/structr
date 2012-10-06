@@ -55,6 +55,7 @@ import org.apache.lucene.search.*;
 import org.structr.common.PropertyKey;
 import org.structr.core.Result;
 import org.structr.core.UnsupportedArgumentError;
+import org.structr.core.entity.AbstractNode.Key;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -416,7 +417,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 						String key         = attr.getKey();
 						Object searchValue = attr.getValue();
 						SearchOperator op  = attr.getSearchOperator();
-						Object nodeValue   = node.getProperty(key);
+						Object nodeValue   = node.getProperty(Key.valueOf(key));
 
 						if (op.equals(SearchOperator.NOT)) {
 
@@ -634,7 +635,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 			if ((value != null) && isExactMatch(value)) {
 
 				String key          = attr.getKey();
-				String nodeValue    = node.getStringProperty(key);
+				String nodeValue    = node.getStringProperty(Key.valueOf(key));
 				String decodedValue = decodeExactMatch(value);
 
 				if (!nodeValue.equals(decodedValue)) {

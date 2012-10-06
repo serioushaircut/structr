@@ -82,12 +82,12 @@ public class TypeAndPropertySetDeserializationStrategy implements Deserializatio
 				GraphObject obj = result.get(0);
 				
 				if(!type.isAssignableFrom(obj.getClass())) {
-					throw new FrameworkException(type.getSimpleName(), new TypeToken("base", type.getSimpleName()));
+					throw new FrameworkException(type.getSimpleName(), new TypeToken(null, type.getSimpleName()));
 				}
 				return result.get(0);
 			}
 
-			throw new FrameworkException(type.getSimpleName(), new PropertiesNotFoundToken("base", attributes));
+			throw new FrameworkException(type.getSimpleName(), new PropertiesNotFoundToken(null, attributes));
 		}
 
 		return null;

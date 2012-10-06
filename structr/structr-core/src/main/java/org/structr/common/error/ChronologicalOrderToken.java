@@ -22,6 +22,7 @@ package org.structr.common.error;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import org.structr.common.PropertyKey;
 
 /**
  *
@@ -29,9 +30,9 @@ import com.google.gson.JsonPrimitive;
  */
 public class ChronologicalOrderToken extends SemanticErrorToken {
 
-	private String propertyKey2 = null;
+	private PropertyKey propertyKey2 = null;
 
-	public ChronologicalOrderToken(String propertyKey1, String propertyKey2) {
+	public ChronologicalOrderToken(PropertyKey propertyKey1, PropertyKey propertyKey2) {
 		super(propertyKey1);
 		this.propertyKey2 = propertyKey2;
 	}
@@ -41,7 +42,7 @@ public class ChronologicalOrderToken extends SemanticErrorToken {
 
 		JsonObject obj = new JsonObject();
 
-		obj.add(getErrorToken(), new JsonPrimitive(propertyKey2));
+		obj.add(getErrorToken(), new JsonPrimitive(propertyKey2.name()));
 
 		return obj;
 	}

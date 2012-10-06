@@ -26,7 +26,7 @@ import org.structr.core.EntityContext;
 /**
  * A simple entity for the most basic tests.
  * 
- * This class doesn't have the not-null constraint on TestOne, so it should
+ * This class doesn't have the not-null constraint on OneTest, so it should
  * not be deleted over relationships which are tagged with
  * DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED
  * 

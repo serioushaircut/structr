@@ -35,7 +35,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.node.DeleteNodeCommand;
-import org.structr.core.node.NodeService;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -44,6 +43,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.core.node.NodeService.NodeIndex;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -67,8 +67,8 @@ public class Component extends AbstractNode implements Element {
 		EntityContext.registerPropertySet(Component.class, PropertyView.Ui, UiKey.values());
 		EntityContext.registerEntityRelation(Component.class, Page.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Component.class, Element.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
-		EntityContext.registerSearchablePropertySet(Component.class, NodeService.NodeIndex.fulltext.name(), UiKey.values());
-		EntityContext.registerSearchablePropertySet(Component.class, NodeService.NodeIndex.keyword.name(), UiKey.values());
+		EntityContext.registerSearchablePropertySet(Component.class, NodeIndex.fulltext, UiKey.values());
+		EntityContext.registerSearchablePropertySet(Component.class, NodeIndex.keyword, UiKey.values());
 
 	}
 

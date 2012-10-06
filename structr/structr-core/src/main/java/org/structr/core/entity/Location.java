@@ -49,8 +49,8 @@ public class Location extends AbstractNode {
 
 		// ----- initialize validators -----
 		// ----- initialize searchable properties
-		EntityContext.registerSearchablePropertySet(Location.class, NodeIndex.fulltext.name(), Key.values());
-		EntityContext.registerSearchablePropertySet(Location.class, NodeIndex.keyword.name(), Key.values());
+		EntityContext.registerSearchablePropertySet(Location.class, NodeIndex.fulltext, Key.values());
+		EntityContext.registerSearchablePropertySet(Location.class, NodeIndex.keyword, Key.values());
 	}
 
 	//~--- constant enums -------------------------------------------------

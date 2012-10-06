@@ -20,6 +20,7 @@
 package org.structr.core.converter;
 
 import java.util.Collection;
+import org.structr.common.PropertyKey;
 import org.structr.core.Value;
 
 /**
@@ -43,10 +44,10 @@ public class ResultCountConverter extends PropertyConverter {
 			
 			Object val = value.get(securityContext);
 			
-			if(val != null) {
+			if (val != null && val instanceof PropertyKey) {
 				
-				Object toCount = currentObject.getProperty(val.toString());
-				if(toCount != null) {
+				Object toCount = currentObject.getProperty((PropertyKey) val);
+				if (toCount != null) {
 
 					if (toCount instanceof Collection) {
 

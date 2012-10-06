@@ -67,8 +67,8 @@ public class File extends AbstractNode implements Linkable {
 		EntityContext.registerPropertySet(File.class, PropertyView.Ui, Key.values());
 
 //              EntityContext.registerPropertyRelation(File.class, Key.parentFolder, Folder.class, RelType.HAS_CHILD, Direction.INCOMING, Cardinality.ManyToOne);
-		EntityContext.registerSearchablePropertySet(File.class, NodeIndex.fulltext.name(), Key.values());
-		EntityContext.registerSearchablePropertySet(File.class, NodeIndex.keyword.name(), Key.values());
+		EntityContext.registerSearchablePropertySet(File.class, NodeIndex.fulltext, Key.values());
+		EntityContext.registerSearchablePropertySet(File.class, NodeIndex.keyword, Key.values());
 		EntityContext.registerPropertyConverter(File.class, Key.cacheForSeconds, IntConverter.class);
 
 	}
@@ -111,13 +111,13 @@ public class File extends AbstractNode implements Linkable {
 
 	public String getUrl() {
 
-		return getStringProperty(Key.url.name());
+		return getStringProperty(Key.url);
 
 	}
 
 	public String getContentType() {
 
-		return getStringProperty(Key.contentType.name());
+		return getStringProperty(Key.contentType);
 
 	}
 
@@ -187,7 +187,7 @@ public class File extends AbstractNode implements Linkable {
 
 	public String getRelativeFilePath() {
 
-		return getStringProperty(Key.relativeFilePath.name());
+		return getStringProperty(Key.relativeFilePath);
 
 	}
 
@@ -252,31 +252,31 @@ public class File extends AbstractNode implements Linkable {
 
 	public void setRelativeFilePath(final String filePath) throws FrameworkException {
 
-		setProperty(Key.relativeFilePath.name(), filePath);
+		setProperty(Key.relativeFilePath, filePath);
 
 	}
 
 	public void setUrl(final String url) throws FrameworkException {
 
-		setProperty(Key.url.name(), url);
+		setProperty(Key.url, url);
 
 	}
 
 	public void setContentType(final String contentType) throws FrameworkException {
 
-		setProperty(Key.contentType.name(), contentType);
+		setProperty(Key.contentType, contentType);
 
 	}
 
 	public void setSize(final long size) throws FrameworkException {
 
-		setProperty(Key.size.name(), size);
+		setProperty(Key.size, size);
 
 	}
 
 	public void setChecksum(final long checksum) throws FrameworkException {
 
-		setProperty(Key.checksum.name(), checksum);
+		setProperty(Key.checksum, checksum);
 
 	}
 

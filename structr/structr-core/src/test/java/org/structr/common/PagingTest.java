@@ -135,18 +135,16 @@ public class PagingTest extends StructrTest {
 
 			assertTrue(result.size() == number);
 
-			String sortKey   = AbstractNode.Key.name.name();
-			boolean sortDesc = false;
-			
-			
+			PropertyKey sortKey = AbstractNode.Key.name;
+			boolean sortDesc    = false;
+
 			// test pages sizes from 0 to 10
-			for (int ps=0; ps<10; ps++) {
-				
+			for (int ps = 0; ps < 10; ps++) {
+
 				// test all pages
-				for (int p=0; p<(number/Math.max(1,ps))+1; p++) {
-			
+				for (int p = 0; p < (number / Math.max(1, ps)) + 1; p++) {
+
 					testPaging(ps, p, number, offset, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc);
-				
 				}
 			}
 
@@ -160,7 +158,7 @@ public class PagingTest extends StructrTest {
 	}
 
 	protected void testPaging(final int pageSize, final int page, final int number, final int offset, final boolean includeDeletedAndHidden, final boolean publicOnly,
-				final List<SearchAttribute> searchAttributes, final String sortKey, final boolean sortDesc)
+				  final List<SearchAttribute> searchAttributes, final PropertyKey sortKey, final boolean sortDesc)
 		throws FrameworkException {
 
 		Result result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
@@ -171,17 +169,17 @@ public class PagingTest extends StructrTest {
 //                      
 //              }
 		logger.log(Level.INFO, "Raw result size: {0}, expected: {1} (page size: {2}, page: {3})", new Object[] { result.getRawResultCount(), number, pageSize, page });
-		assertTrue(result.getRawResultCount() == ((pageSize == 0 || page == 0) ? 0 : number));
+		assertTrue(result.getRawResultCount() == ((pageSize == 0 || page == 0)
+			? 0
+			: number));
 
 		long expectedResultCount = (pageSize == 0 || page == 0)
 					   ? 0
 					   : Math.min(number, pageSize);
-
-		int startIndex = (Math.max(page, 1) - 1) * pageSize;
+		int startIndex           = (Math.max(page, 1) - 1) * pageSize;
 
 		logger.log(Level.INFO, "Result size: {0}, expected: {1}, start index: {2}", new Object[] { result.size(), expectedResultCount, startIndex });
 		assertTrue(result.size() == expectedResultCount);
-		
 
 		for (int j = 0; j < expectedResultCount; j++) {
 
@@ -192,8 +190,7 @@ public class PagingTest extends StructrTest {
 			assertEquals(expectedName, gotName);
 
 		}
-		
-	}
 
+	}
 
 }

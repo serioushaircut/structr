@@ -48,6 +48,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.index.lucene.ValueContext;
+import org.structr.common.PropertyKey;
+import org.structr.core.entity.AbstractNode.Key;
 import org.structr.core.node.search.SearchNodeCommand;
 
 //~--- classes ----------------------------------------------------------------
@@ -63,7 +65,7 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 	//~--- fields ---------------------------------------------------------
 
-	private Map<String, Index> indices = new HashMap<String, Index>();
+	private Map<Enum, Index<Node>> indices = new HashMap();
 	GraphDatabaseService graphDb;
 
 	//~--- methods --------------------------------------------------------
@@ -75,13 +77,13 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 		for (Enum indexName : (NodeIndex[]) arguments.get("indices")) {
 
-			indices.put(indexName.name(), (Index<Node>) arguments.get(indexName.name()));
+			indices.put(indexName, (Index<Node>) arguments.get(indexName.name()));
 
 		}
 
 		long id           = 0;
 		AbstractNode node = null;
-		String key        = null;
+		PropertyKey key   = null;
 
 		switch (parameters.length) {
 
@@ -149,9 +151,9 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 				}
 
-				if (parameters[1] instanceof String) {
+				if (parameters[1] instanceof PropertyKey) {
 
-					key = (String) parameters[1];
+					key = (PropertyKey) parameters[1];
 
 				}
 
@@ -193,11 +195,11 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 			for (Enum index : (NodeIndex[]) arguments.get("indices")) {
 
-				Set<String> properties = EntityContext.getSearchableProperties(node.getClass(), index.name());
+				Set<PropertyKey> properties = EntityContext.getSearchableProperties(node.getClass(), index);
 
-				for (String key : properties) {
+				for (PropertyKey key : properties) {
 
-					indexProperty(node, key, index.name());
+					indexProperty(node, key, index);
 
 				}
 
@@ -207,7 +209,7 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 			if ((dbNode.hasProperty(Location.Key.latitude.name())) && (dbNode.hasProperty(Location.Key.longitude.name()))) {
 
-				LayerNodeIndex layerIndex = (LayerNodeIndex) indices.get(NodeIndex.layer.name());
+				LayerNodeIndex layerIndex = (LayerNodeIndex) indices.get(NodeIndex.layer);
 
 				try {
 
@@ -228,14 +230,14 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 //					final Map<String, String> config = new HashMap<String, String>();
 //
-//					config.put(LayerNodeIndex.LAT_PROPERTY_KEY, Location.Key.latitude.name());
-//					config.put(LayerNodeIndex.LON_PROPERTY_KEY, Location.Key.longitude.name());
+//					config.put(LayerNodeIndex.LAT_PROPERTY_KEY, Location.Key.latitude);
+//					config.put(LayerNodeIndex.LON_PROPERTY_KEY, Location.Key.longitude);
 //					config.put(SpatialIndexProvider.GEOMETRY_TYPE, LayerNodeIndex.POINT_PARAMETER);
 //
 //					layerIndex = new LayerNodeIndex("layerIndex", graphDb, config);
 //					logger.log(Level.WARNING, "Created layer node index due to exception", e);
 //
-//					indices.put(NodeIndex.layer.name(), layerIndex);
+//					indices.put(NodeIndex.layer, layerIndex);
 //
 //					// try again
 //					layerIndex.add(dbNode, "", "");
@@ -250,22 +252,22 @@ public class IndexNodeCommand extends NodeServiceCommand {
 		}
 	}
 
-	private void indexProperty(final AbstractNode node, final String key) {
+	private void indexProperty(final AbstractNode node, final PropertyKey key) {
 
 		for (Enum index : (NodeIndex[]) arguments.get("indices")) {
 
-			Set<String> properties = EntityContext.getSearchableProperties(node.getClass(), index.name());
+			Set<PropertyKey> properties = EntityContext.getSearchableProperties(node.getClass(), index);
 
 			if ((properties != null) && properties.contains(key)) {
 
-				indexProperty(node, key, index.name());
+				indexProperty(node, key, index);
 
 			}
 
 		}
 	}
 
-	private void indexProperty(final AbstractNode node, final String key, final String indexName) {
+	private void indexProperty(final AbstractNode node, final PropertyKey key, final Enum indexName) {
 
 		// String type = node.getClass().getSimpleName();
 		Node dbNode = node.getNode();
@@ -279,12 +281,12 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 		}
 
-		boolean emptyKey = StringUtils.isEmpty((String) key);
+		boolean emptyKey = (StringUtils.isBlank(key.name()));
 
 		if (emptyKey) {
 
 			logger.log(Level.SEVERE, "Node {0} has empty, not-null key, removing property", new Object[] { id });
-			dbNode.removeProperty(key);
+			dbNode.removeProperty(key.name());
 
 			return;
 
@@ -305,38 +307,38 @@ public class IndexNodeCommand extends NodeServiceCommand {
 		logger.log(Level.FINE, "Node {0}: Old value for key {1} removed from {2} index", new Object[] { id, key, indexName });
 		addNodePropertyToIndex(dbNode, key, valueForIndexing, indexName);
 
-		if ((node instanceof Principal) && (key.equals(AbstractNode.Key.name.name()) || key.equals(Person.Key.email.name()))) {
+		if ((node instanceof Principal) && (key.equals(AbstractNode.Key.name) || key.equals(Person.Key.email))) {
 
-			removeNodePropertyFromIndex(dbNode, key, NodeIndex.user.name());
-			addNodePropertyToIndex(dbNode, key, valueForIndexing, NodeIndex.user.name());
+			removeNodePropertyFromIndex(dbNode, key, NodeIndex.user);
+			addNodePropertyToIndex(dbNode, key, valueForIndexing, NodeIndex.user);
 
 		}
 
-		if (key.equals(AbstractNode.Key.uuid.name())) {
+		if (key.equals(AbstractNode.Key.uuid)) {
 
-			removeNodePropertyFromIndex(dbNode, key, NodeIndex.uuid.name());
-			addNodePropertyToIndex(dbNode, key, valueForIndexing, NodeIndex.uuid.name());
+			removeNodePropertyFromIndex(dbNode, key, NodeIndex.uuid);
+			addNodePropertyToIndex(dbNode, key, valueForIndexing, NodeIndex.uuid);
 
 		}
 
 		logger.log(Level.FINE, "Node {0}: New value {2} added for key {1}", new Object[] { id, key, value });
 	}
 
-	private void removeNodePropertyFromIndex(final Node node, final String key, final String indexName) {
+	private void removeNodePropertyFromIndex(final Node node, final PropertyKey key, final Enum indexName) {
 		Index<Node> index = indices.get(indexName);
 		synchronized(index) {
-			index.remove(node, key);
+			index.remove(node, key.name());
 		}
 	}
 
-	private void addNodePropertyToIndex(final Node node, final String key, final Object value, final String indexName) {
+	private void addNodePropertyToIndex(final Node node, final PropertyKey key, final Object value, final Enum indexName) {
 		Index<Node> index = indices.get(indexName);
 		synchronized(index) {
 			
 			if (value instanceof Number) {
-				index.add(node, key, new ValueContext(value).indexNumeric());
+				index.add(node, key.name(), new ValueContext(value).indexNumeric());
 			} else {
-				index.add(node, key, value);
+				index.add(node, key.name(), value);
 			}
 		}
 	}

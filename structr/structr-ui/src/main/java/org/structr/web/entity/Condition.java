@@ -30,11 +30,11 @@ import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.RelationClass;
-import org.structr.core.node.NodeService;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.core.node.NodeService.NodeIndex;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -51,8 +51,8 @@ public class Condition extends AbstractNode {
 		EntityContext.registerPropertySet(Condition.class, PropertyView.Ui, Condition.Key.values());
 		EntityContext.registerEntityRelation(Condition.class, Page.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Condition.class, Element.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerSearchablePropertySet(Condition.class, NodeService.NodeIndex.fulltext.name(), Condition.Key.values());
-		EntityContext.registerSearchablePropertySet(Condition.class, NodeService.NodeIndex.keyword.name(), Condition.Key.values());
+		EntityContext.registerSearchablePropertySet(Condition.class, NodeIndex.fulltext, Condition.Key.values());
+		EntityContext.registerSearchablePropertySet(Condition.class, NodeIndex.keyword, Condition.Key.values());
 
 	}
 

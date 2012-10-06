@@ -48,19 +48,19 @@ public class PlainText extends AbstractNode {
 
 	public String getContent() {
 
-		return getStringProperty(Key.content.name());
+		return getStringProperty(Key.content);
 
 	}
 
 	public String getContentType() {
 
-		return getStringProperty(Key.contentType.name());
+		return getStringProperty(Key.contentType);
 
 	}
 
 	public String getSize() {
 
-		return getStringProperty(Key.size.name());
+		return getStringProperty(Key.size);
 
 	}
 
@@ -68,19 +68,19 @@ public class PlainText extends AbstractNode {
 
 	public void setContent(final String content) throws FrameworkException {
 
-		setProperty(Key.content.name(), content);
+		setProperty(Key.content, content);
 
 	}
 
 	public void setContentType(final String contentType) throws FrameworkException {
 
-		setProperty(Key.contentType.name(), contentType);
+		setProperty(Key.contentType, contentType);
 
 	}
 
 	public void setSize(final String size) throws FrameworkException {
 
-		setProperty(Key.size.name(), size);
+		setProperty(Key.size, size);
 
 	}
 

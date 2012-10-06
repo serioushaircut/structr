@@ -38,6 +38,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.PropertyKey;
+import org.structr.core.entity.AbstractNode.Key;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -142,7 +144,7 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject>, Json
 
 		} else {
 
-			Object idPropertyValue = src.getProperty(idProperty);
+			Object idPropertyValue = src.getProperty(Key.valueOf(idProperty));
 
 			if (idPropertyValue != null) {
 
@@ -166,9 +168,10 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject>, Json
 		// property keys
 		JsonArray properties = new JsonArray();
 
-		for (String key : src.getPropertyKeys(localPropertyView)) {
-
-			Object value = src.getProperty(key);
+		for (PropertyKey propertyKey : src.getPropertyKeys(localPropertyView)) {
+			
+			String key = propertyKey.name();
+			Object value = src.getProperty(propertyKey);
 
 			if (value instanceof Iterable) {
 
@@ -313,7 +316,7 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject>, Json
 
 		} else {
 
-			Object idPropertyValue = src.getProperty(idProperty);
+			Object idPropertyValue = src.getProperty(Key.valueOf(idProperty));
 
 			if (idPropertyValue != null) {
 
@@ -326,11 +329,12 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject>, Json
 		}
 
 		// property keys
-		Iterable<String> keys = src.getPropertyKeys(localPropertyView);
-		if(keys != null) {
-			for (String key : keys) {
+		Iterable<PropertyKey> keys = src.getPropertyKeys(localPropertyView);
+		if (keys != null) {
+			for (PropertyKey propertyKey : keys) {
 
-				Object value = src.getProperty(key);
+				String key  = propertyKey.name();
+				Object value = src.getProperty(propertyKey);
 
 				if (value != null) {
 

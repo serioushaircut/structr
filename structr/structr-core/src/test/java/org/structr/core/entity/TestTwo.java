@@ -19,6 +19,7 @@
 package org.structr.core.entity;
 
 import org.neo4j.graphdb.Direction;
+import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.error.ErrorBuffer;
@@ -27,13 +28,13 @@ import org.structr.core.EntityContext;
 /**
  * A simple entity for the most basic tests.
  * 
- * This class has a not-null constraint on the TestOne object, so when
- * the TestOne object is deleted, this object should be deleted as well.
+ * This class has a not-null constraint on the OneTest object, so when
+ * the OneTest object is deleted, this object should be deleted as well.
  * 
  * @author Axel Morgner
  */
 public class TestTwo extends AbstractNode {
-	
+
 	static {
 		
 		EntityContext.registerPropertySet(TestTwo.class, PropertyView.Public, Key.values());
@@ -46,7 +47,7 @@ public class TestTwo extends AbstractNode {
 	}
 	
 	private TestOne getTestOne() {
-		return (TestOne) getProperty(TestOne.class.getSimpleName());
+		return (TestOne) getProperty(Key.valueOf(TestOne.class.getSimpleName()));
 	}
 	
 	

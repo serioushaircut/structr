@@ -54,6 +54,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.PropertyKey;
 import org.structr.core.EntityContext;
 
 //~--- classes ----------------------------------------------------------------
@@ -130,12 +131,12 @@ public class RelationClass {
 				@Override
 				public Object execute() throws FrameworkException {
 
-                                        Map<String, Object> props = new HashMap(properties);
+                                        Map<PropertyKey, Object> props = new HashMap(properties);
 
 					// set cascade delete value
 					if (cascadeDelete > 0) {
 
-						props.put(AbstractRelationship.HiddenKey.cascadeDelete.name(), new Integer(cascadeDelete));
+						props.put(AbstractRelationship.HiddenKey.cascadeDelete, new Integer(cascadeDelete));
 
 					}
 
@@ -351,15 +352,15 @@ public class RelationClass {
 			public Object execute() throws FrameworkException {
 
 				AbstractNode relatedNode = (AbstractNode) Services.command(securityContext,
-								   CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.Key.type.name(), getDestType().getSimpleName()));
+								   CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.Key.type, getDestType().getSimpleName()));
 
 				Command createRel           = Services.command(securityContext, CreateRelationshipCommand.class);
                                 
-                                Map<String, Object> props = new LinkedHashMap<String, Object>();
+                                Map<PropertyKey, Object> props = new LinkedHashMap<PropertyKey, Object>();
 
                                 if (cascadeDelete > 0) {
 
-					props.put(AbstractRelationship.HiddenKey.cascadeDelete.name(), new Integer(cascadeDelete));
+					props.put(AbstractRelationship.HiddenKey.cascadeDelete, new Integer(cascadeDelete));
 
 				}
                                 
@@ -402,7 +403,7 @@ public class RelationClass {
 			return getTraversalResults(securityContext, node);
 		} else {
 
-			logger.log(Level.WARNING, "Requested related nodes with wrong cardinality {0} between {1} and {2}", new Object[] { cardinality.name(), node.getClass().getSimpleName(),
+			logger.log(Level.WARNING, "Requested related nodes with wrong cardinality {0} between {1} and {2}", new Object[] { cardinality, node.getClass().getSimpleName(),
 				destType });
 
 		}
@@ -424,7 +425,7 @@ public class RelationClass {
 
 		} else {
 
-			logger.log(Level.WARNING, "Requested related node with wrong cardinality {0} between {1} and {2}", new Object[] { cardinality.name(), node.getClass().getSimpleName(),
+			logger.log(Level.WARNING, "Requested related node with wrong cardinality {0} between {1} and {2}", new Object[] { cardinality, node.getClass().getSimpleName(),
 				destType });
 
 		}

@@ -33,7 +33,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.RelationClass;
 import org.structr.core.entity.RelationClass.Cardinality;
-import org.structr.core.node.NodeService;
 import org.structr.core.node.search.Search;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.web.common.PageHelper;
@@ -49,6 +48,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.core.node.NodeService.NodeIndex;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -120,8 +120,8 @@ public class Content extends AbstractNode {
 		EntityContext.registerEntityRelation(Content.class, Bdi.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Content.class, Bdo.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Content.class, Span.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerSearchablePropertySet(Content.class, NodeService.NodeIndex.fulltext.name(), UiKey.values());
-		EntityContext.registerSearchablePropertySet(Content.class, NodeService.NodeIndex.keyword.name(), UiKey.values());
+		EntityContext.registerSearchablePropertySet(Content.class, NodeIndex.fulltext, UiKey.values());
+		EntityContext.registerSearchablePropertySet(Content.class, NodeIndex.keyword, UiKey.values());
 		EntityContext.registerPropertyValidator(Content.class, UiKey.content, new DynamicValidator("content"));
 		EntityContext.registerPropertyConverter(Content.class, UiKey.content, DynamicConverter.class);
 

@@ -76,7 +76,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 		attrs.add(Search.andExactTypeAndSubtypes(type.getSimpleName()));
 
 		if (source != null) {
-			attrs.add(Search.andExactProperty(propertyKey, source.toString()));
+			attrs.add(Search.andExactProperty(propertyKey.name(), source.toString()));
 		}
 
 
@@ -96,7 +96,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 								   new NodeAttribute(
 								       AbstractNode.Key.type.name(),
 								       type.getSimpleName()), new NodeAttribute(
-									   propertyKey.name(), source.toString()));
+									   propertyKey, source.toString()));
 
 					if (newNode != null) {
 						return newNode;
@@ -105,7 +105,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 						logger.log(Level.WARNING,
 							   "Unable to create node of type {0} for property {1}",
 							   new Object[] { type.getSimpleName(),
-									  propertyKey.name() });
+									  propertyKey });
 					}
 				}
 
@@ -115,7 +115,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 				GraphObject obj = result.get(0);
 				//if(!type.getSimpleName().equals(node.getType())) {
 				if (!type.isAssignableFrom(obj.getClass())) {
-					throw new FrameworkException("base", new TypeToken(propertyKey.name(), type.getSimpleName()));
+					throw new FrameworkException("base", new TypeToken(propertyKey, type.getSimpleName()));
 				}
 				return obj;
 		}
@@ -128,7 +128,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 			attributes.put("type", type.getSimpleName());
 
 			throw new FrameworkException(type.getSimpleName(),
-						     new PropertiesNotFoundToken("base", attributes));
+						     new PropertiesNotFoundToken(null, attributes));
 		}
 		
 		return null;

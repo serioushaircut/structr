@@ -27,7 +27,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.converter.IntConverter;
-import org.structr.core.node.NodeService;
+import org.structr.core.node.NodeService.NodeIndex;
 
 /**
  * Controls access to REST resources
@@ -61,12 +61,12 @@ public class ResourceAccess extends AbstractNode {
 		EntityContext.registerPropertySet(ResourceAccess.class, PropertyView.All, Key.values());
 		EntityContext.registerPropertySet(ResourceAccess.class, PropertyView.Ui, Key.values());
 
-		EntityContext.registerSearchablePropertySet(ResourceAccess.class, NodeService.NodeIndex.fulltext.name(), Key.values());
-		EntityContext.registerSearchablePropertySet(ResourceAccess.class, NodeService.NodeIndex.keyword.name(),  Key.values());
+		EntityContext.registerSearchablePropertySet(ResourceAccess.class, NodeIndex.fulltext, Key.values());
+		EntityContext.registerSearchablePropertySet(ResourceAccess.class, NodeIndex.keyword,  Key.values());
 		
 		// signature and type must be read-only
-		EntityContext.registerWriteOnceProperty(ResourceAccess.class, AbstractNode.Key.type.name());
-		EntityContext.registerWriteOnceProperty(ResourceAccess.class, Key.signature.name());
+		EntityContext.registerWriteOnceProperty(ResourceAccess.class, AbstractNode.Key.type);
+		EntityContext.registerWriteOnceProperty(ResourceAccess.class, Key.signature);
 		
 		EntityContext.registerPropertyConverter(ResourceAccess.class, Key.flags, IntConverter.class);
 

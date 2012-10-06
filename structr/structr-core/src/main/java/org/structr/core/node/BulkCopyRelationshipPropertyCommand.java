@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.PropertyKey;
 import org.structr.core.entity.AbstractRelationship;
 
 //~--- classes ----------------------------------------------------------------
@@ -60,10 +61,10 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand {
 
 		}
 		
-		Map map = (Map)parameters[0];
+		Map map = (Map) parameters[0];
 		
-		final String sourceKey = (String)map.get("sourceKey");
-		final String destKey   = (String)map.get("destKey");
+		final PropertyKey sourceKey = (PropertyKey) map.get("sourceKey");
+		final PropertyKey destKey   = (PropertyKey) map.get("destKey");
 
 		if(sourceKey == null || destKey == null) {
 
@@ -83,10 +84,10 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand {
 					List<AbstractRelationship> rels = (List<AbstractRelationship>)relFactory.createRelationships(securityContext, GlobalGraphOperations.at(graphDb).getAllRelationships());
 					long n = 0;
 					
-					for(AbstractRelationship rel : rels) {
+					for (AbstractRelationship rel : rels) {
 
 						// Treat only "our" rels
-						if(rel.getStringProperty(AbstractNode.Key.uuid) != null) {
+						if (rel.getStringProperty(AbstractNode.Key.uuid) != null) {
 
 							// copy properties
 							rel.setProperty(destKey, rel.getProperty(sourceKey));

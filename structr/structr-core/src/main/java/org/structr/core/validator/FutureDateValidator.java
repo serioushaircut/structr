@@ -21,6 +21,7 @@ package org.structr.core.validator;
 
 import java.util.Date;
 import java.util.logging.Logger;
+import org.structr.common.PropertyKey;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FutureDateToken;
@@ -38,7 +39,7 @@ public class FutureDateValidator extends PropertyValidator {
 	private static final Logger logger = Logger.getLogger(FutureDateValidator.class.getName());
 
 	@Override
-	public boolean isValid(GraphObject object, String key, Object value, ErrorBuffer errorBuffer) {
+	public boolean isValid(GraphObject object, PropertyKey key, Object value, ErrorBuffer errorBuffer) {
 
 		if(value != null) {
 

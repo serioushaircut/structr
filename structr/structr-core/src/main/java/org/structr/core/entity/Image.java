@@ -124,13 +124,13 @@ public class Image extends File {
 
 	public Integer getWidth() {
 
-		return getIntProperty(Key.width.name());
+		return getIntProperty(Key.width);
 
 	}
 
 	public Integer getHeight() {
 
-		return getIntProperty(Key.height.name());
+		return getIntProperty(Key.height);
 
 	}
 
@@ -219,8 +219,8 @@ public class Image extends File {
 
 				for (AbstractRelationship r : thumbnailRelationships) {
 
-					Integer w = (Integer) r.getProperty(Key.width.name());
-					Integer h = (Integer) r.getProperty(Key.height.name());
+					Integer w = (Integer) r.getProperty(Key.width);
+					Integer h = (Integer) r.getProperty(Key.height);
 
 					if ((w != null) && (h != null)) {
 
@@ -268,11 +268,11 @@ public class Image extends File {
 					Command createRel  = Services.command(securityContext, CreateRelationshipCommand.class);
 
 					// Command findNode = Services.command(securityContext, FindNodeCommand.class);
-					NodeAttribute typeAttr                           = new NodeAttribute(AbstractNode.Key.type.name(), Image.class.getSimpleName());
-					NodeAttribute contentTypeAttr                    = new NodeAttribute(File.Key.contentType.name(), "image/" + Thumbnail.FORMAT);
-					NodeAttribute isHiddenAttr                       = new NodeAttribute(AbstractNode.Key.hidden.name(), originalImage.getHidden());
-					NodeAttribute isPublicAttr                       = new NodeAttribute(AbstractNode.Key.visibleToPublicUsers.name(), originalImage.getVisibleToPublicUsers());
-					NodeAttribute isVisibleForAuthenticatedUsersAttr = new NodeAttribute(AbstractNode.Key.visibleToAuthenticatedUsers.name(),
+					NodeAttribute typeAttr                           = new NodeAttribute(AbstractNode.Key.type, Image.class.getSimpleName());
+					NodeAttribute contentTypeAttr                    = new NodeAttribute(File.Key.contentType, "image/" + Thumbnail.FORMAT);
+					NodeAttribute isHiddenAttr                       = new NodeAttribute(AbstractNode.Key.hidden, originalImage.getHidden());
+					NodeAttribute isPublicAttr                       = new NodeAttribute(AbstractNode.Key.visibleToPublicUsers, originalImage.getVisibleToPublicUsers());
+					NodeAttribute isVisibleForAuthenticatedUsersAttr = new NodeAttribute(AbstractNode.Key.visibleToAuthenticatedUsers,
 												   originalImage.getVisibleToAuthenticatedUsers());
 					Thumbnail thumbnailData = ImageHelper.createThumbnail(originalImage, maxWidth, maxHeight, cropToFit);
 
@@ -316,8 +316,8 @@ public class Image extends File {
 							Integer tnWidth  = thumbnailData.getWidth();
 							Integer tnHeight = thumbnailData.getHeight();
 
-							thumbnailRelationship.setProperty(Key.width.name(), tnWidth);
-							thumbnailRelationship.setProperty(Key.height.name(), tnHeight);
+							thumbnailRelationship.setProperty(Key.width, tnWidth);
+							thumbnailRelationship.setProperty(Key.height, tnHeight);
 
 							// set local file url
 							thumbnail.setRelativeFilePath(relativeFilePath);
@@ -372,13 +372,13 @@ public class Image extends File {
 
 	public void setWidth(Integer width) throws FrameworkException {
 
-		setProperty(Key.width.name(), width);
+		setProperty(Key.width, width);
 
 	}
 
 	public void setHeight(Integer height) throws FrameworkException {
 
-		setProperty(Key.height.name(), height);
+		setProperty(Key.height, height);
 
 	}
 
@@ -390,7 +390,7 @@ public class Image extends File {
 
 		for (Image thumbnail : getThumbnails()) {
 
-			thumbnail.setProperty(AbstractNode.Key.visibleToPublicUsers.name(), publicFlag);
+			thumbnail.setProperty(AbstractNode.Key.visibleToPublicUsers, publicFlag);
 		}
 
 	}
@@ -403,7 +403,7 @@ public class Image extends File {
 
 		for (Image thumbnail : getThumbnails()) {
 
-			thumbnail.setProperty(AbstractNode.Key.visibleToAuthenticatedUsers.name(), flag);
+			thumbnail.setProperty(AbstractNode.Key.visibleToAuthenticatedUsers, flag);
 		}
 
 	}
@@ -416,7 +416,7 @@ public class Image extends File {
 
 		for (Image thumbnail : getThumbnails()) {
 
-			thumbnail.setProperty(AbstractNode.Key.hidden.name(), hidden);
+			thumbnail.setProperty(AbstractNode.Key.hidden, hidden);
 		}
 
 	}
@@ -429,7 +429,7 @@ public class Image extends File {
 
 		for (Image thumbnail : getThumbnails()) {
 
-			thumbnail.setProperty(AbstractNode.Key.deleted.name(), deleted);
+			thumbnail.setProperty(AbstractNode.Key.deleted, deleted);
 		}
 
 	}
@@ -442,7 +442,7 @@ public class Image extends File {
 
 		for (Image thumbnail : getThumbnails()) {
 
-			thumbnail.setProperty(AbstractNode.Key.visibilityStartDate.name(), date);
+			thumbnail.setProperty(AbstractNode.Key.visibilityStartDate, date);
 		}
 
 	}
@@ -455,7 +455,7 @@ public class Image extends File {
 
 		for (Image thumbnail : getThumbnails()) {
 
-			thumbnail.setProperty(AbstractNode.Key.visibilityEndDate.name(), date);
+			thumbnail.setProperty(AbstractNode.Key.visibilityEndDate, date);
 		}
 
 	}

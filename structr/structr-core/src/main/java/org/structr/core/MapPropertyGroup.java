@@ -30,6 +30,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.AbstractNode.Key;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -53,11 +54,11 @@ public class MapPropertyGroup implements PropertyGroup {
 	@Override
 	public Object getGroupedProperties(GraphObject source) {
 
-		Map<String, Object> groupedProperties = new LinkedHashMap<String, Object>();
+		Map<PropertyKey, Object> groupedProperties = new LinkedHashMap<PropertyKey, Object>();
 
 		for (PropertyKey key : propertyKeys) {
 
-			groupedProperties.put(key.name(), source.getProperty(key.name()));
+			groupedProperties.put(key, source.getProperty(key));
 
 		}
 
@@ -73,7 +74,7 @@ public class MapPropertyGroup implements PropertyGroup {
 
 			for (PropertyKey key : propertyKeys) {
 
-				destination.setProperty(key.name(), null);
+				destination.setProperty(key, null);
 
 			}
 
@@ -90,7 +91,7 @@ public class MapPropertyGroup implements PropertyGroup {
 
 				} else {
 
-					destination.setProperty(key, value);
+					destination.setProperty(Key.valueOf(key), value);
 
 				}
 
@@ -100,8 +101,8 @@ public class MapPropertyGroup implements PropertyGroup {
 
 			for (NodeAttribute attr : ((PropertySet) source).getAttributes()) {
 
-				String key   = attr.getKey();
-				Object value = attr.getValue();
+				String key = attr.getKey();
+				Object value	= attr.getValue();
 
 				if (value instanceof PropertySet) {
 
@@ -109,7 +110,7 @@ public class MapPropertyGroup implements PropertyGroup {
 					setGroupedProperties(value, destination);
 				} else {
 
-					destination.setProperty(key, value);
+					destination.setProperty(Key.valueOf(key), value);
 
 				}
 

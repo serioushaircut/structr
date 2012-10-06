@@ -25,7 +25,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.TestOne;
 import org.structr.core.node.search.FilterSearchAttribute;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
@@ -41,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.entity.GenericRelationship;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -68,9 +68,9 @@ public class SearchResultsTest extends StructrTest {
 
 		try {
 
-			Map<String, Object> props = new HashMap<String, Object>();
-			String key                = "name";
-			String name               = "89w3hklsdfghsdkljth";
+			Map<PropertyKey, Object> props = new HashMap<PropertyKey, Object>();
+			PropertyKey key                = AbstractNode.Key.name;
+			String name                    = "89w3hklsdfghsdkljth";
 
 			props.put(key, name);
 
@@ -111,10 +111,10 @@ public class SearchResultsTest extends StructrTest {
 
 		try {
 
-			Map<String, Object> props = new HashMap<String, Object>();
-			String key                = "someDate";
-			Date date                 = new Date();
-			String type               = "Something";
+			Map<PropertyKey, Object> props = new HashMap<PropertyKey, Object>();
+			PropertyKey key                = AbstractNode.Key.valueOf("someDate");
+			Date date                      = new Date();
+			String type                    = "Something";
 
 			props.put(key, date);
 
@@ -124,7 +124,7 @@ public class SearchResultsTest extends StructrTest {
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
 			searchAttributes.add(new TextualSearchAttribute(AbstractNode.Key.type.name(), type, SearchOperator.AND));
-			searchAttributes.add(new FilterSearchAttribute(key, date.getTime(), SearchOperator.AND));
+			searchAttributes.add(new FilterSearchAttribute(key.name(), date.getTime(), SearchOperator.AND));
 
 			Result result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes);
 
@@ -145,7 +145,7 @@ public class SearchResultsTest extends StructrTest {
 		try {
 
 			AbstractRelationship rel = ((List<AbstractRelationship>) createTestRelationships(RelType.UNDEFINED, 1)).get(0);
-			String key1              = "jghsdkhgshdhgsdjkfgh";
+			PropertyKey key1         = GenericRelationship.Key.valueOf("ölsakjfölsafjk");
 			String val1              = "54354354546806849870";
 
 			rel.setProperty(key1, val1);
@@ -153,7 +153,7 @@ public class SearchResultsTest extends StructrTest {
 
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-			searchAttributes.add(Search.andExactProperty(key1, val1));
+			searchAttributes.add(Search.andExactProperty(key1.name(), val1));
 
 			List<AbstractRelationship> result = (List<AbstractRelationship>) searchRelationshipCommand.execute(searchAttributes);
 
@@ -164,7 +164,7 @@ public class SearchResultsTest extends StructrTest {
 			val1 = "ölllldjöoa8w4rasf";
 
 			rel.setProperty(key1, val1);
-			searchAttributes.add(Search.andExactProperty(key1, val1));
+			searchAttributes.add(Search.andExactProperty(key1.name(), val1));
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(rel));
 

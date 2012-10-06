@@ -70,7 +70,7 @@ public class SortingTest extends StructrTest {
 			boolean includeDeletedAndHidden = false;
 			boolean publicOnly              = false;
 			String type                     = TestOne.class.getSimpleName();
-			int number                      = 4; // no more than 89 to avoid sort order TestOne-10, TestOne-100 ...
+			int number                      = 4;    // no more than 89 to avoid sort order TestOne-10, TestOne-100 ...
 			List<AbstractNode> nodes        = this.createTestNodes(type, number);
 			int offset                      = 10;
 			int i                           = offset;
@@ -80,14 +80,12 @@ public class SortingTest extends StructrTest {
 
 			for (AbstractNode node : nodes) {
 
-				//System.out.println("Node ID: " + node.getNodeId());
-				
+				// System.out.println("Node ID: " + node.getNodeId());
 				name = "TestOne-" + i;
 
 				i++;
 
 				node.setName(name);
-
 			}
 
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
@@ -118,7 +116,7 @@ public class SortingTest extends StructrTest {
 			for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
 
 				String expectedName = "TestOne-" + (offset + j);
-				String gotName     = result.get(j).getStringProperty(AbstractNode.Key.name);
+				String gotName      = result.get(j).getStringProperty(AbstractNode.Key.name);
 
 				System.out.println(expectedName + ", got: " + gotName);
 				assertTrue(gotName.equals(expectedName));
@@ -265,7 +263,7 @@ public class SortingTest extends StructrTest {
 			for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
 
 				String expectedName = "TestOne-" + (offset + j);
-				String gotName     = result.get(j).getStringProperty(AbstractNode.Key.name);
+				String gotName      = result.get(j).getStringProperty(AbstractNode.Key.name);
 
 				System.out.println(expectedName + ", got: " + gotName);
 				assertTrue(gotName.equals(expectedName));
@@ -362,7 +360,7 @@ public class SortingTest extends StructrTest {
 			String type                     = TestOne.class.getSimpleName();
 			int number                      = 61;
 			List<AbstractNode> nodes        = this.createTestNodes(type, number);
-			String key                      = TestOne.Key.anInt.name();
+			PropertyKey key                 = TestOne.Key.anInt;
 			int offset                      = 10;
 			int i                           = offset;
 
@@ -390,10 +388,10 @@ public class SortingTest extends StructrTest {
 
 			assertTrue(result.size() == number);
 
-			String sortKey   = key;
-			boolean sortDesc = false;
-			int pageSize     = 5;
-			int page         = 1;
+			PropertyKey sortKey = key;
+			boolean sortDesc    = false;
+			int pageSize        = 5;
+			int page            = 1;
 
 			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, null, SortField.INT);
 
@@ -434,7 +432,7 @@ public class SortingTest extends StructrTest {
 			String type                     = TestOne.class.getSimpleName();
 			int number                      = 43;
 			List<AbstractNode> nodes        = this.createTestNodes(type, number);
-			String key                      = TestOne.Key.aLong.name();
+			PropertyKey key                 = TestOne.Key.aLong;
 			long offset                     = 10;
 			long i                          = offset;
 
@@ -465,10 +463,10 @@ public class SortingTest extends StructrTest {
 
 			assertTrue(result.size() == number);
 
-			String sortKey   = key;
-			boolean sortDesc = false;
-			int pageSize     = 20;
-			int page         = 1;
+			PropertyKey sortKey = key;
+			boolean sortDesc    = false;
+			int pageSize        = 20;
+			int page            = 1;
 
 			result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, null, SortField.LONG);
 

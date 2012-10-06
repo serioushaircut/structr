@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletResponse;
+import org.structr.common.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -74,19 +75,19 @@ public class FrameworkException extends Exception {
 
 		StringBuilder out                                = new StringBuilder();
 		ErrorBuffer buf                                  = getErrorBuffer();
-		Map<String, Map<String, Set<ErrorToken>>> tokens = buf.getErrorTokens();
+		Map<String, Map<PropertyKey, Set<ErrorToken>>> tokens = buf.getErrorTokens();
 
-		for (Map.Entry<String, Map<String, Set<ErrorToken>>> token : tokens.entrySet()) {
+		for (Map.Entry<String, Map<PropertyKey, Set<ErrorToken>>> token : tokens.entrySet()) {
 
 			String tokenKey = token.getKey();
 
 			out.append(tokenKey);
 
-			Map<String, Set<ErrorToken>> errors = token.getValue();
+			Map<PropertyKey, Set<ErrorToken>> errors = token.getValue();
 
-			for (Map.Entry<String, Set<ErrorToken>> error : errors.entrySet()) {
+			for (Map.Entry<PropertyKey, Set<ErrorToken>> error : errors.entrySet()) {
 
-				String errorKey = error.getKey();
+				PropertyKey errorKey = error.getKey();
 
 				out.append("\n").append(errorKey).append(" => ");
 

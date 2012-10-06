@@ -56,6 +56,8 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.common.Permission;
+import org.structr.core.entity.AbstractNode.Key;
+import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.rest.exception.NotAllowedException;
 
 //~--- classes ----------------------------------------------------------------
@@ -371,7 +373,7 @@ public abstract class Resource {
 		return -1;
 	}
 
-	private void checkForIllegalSearchKeys(final HttpServletRequest request, final Set<String> searchableProperties) throws FrameworkException {
+	private void checkForIllegalSearchKeys(final HttpServletRequest request, final Set<PropertyKey> searchableProperties) throws FrameworkException {
 
 		ErrorBuffer errorBuffer = new ErrorBuffer();
 
@@ -379,8 +381,10 @@ public abstract class Resource {
 		for (Enumeration<String> e = request.getParameterNames(); e.hasMoreElements(); ) {
 
 			String requestParameterName = e.nextElement();
+			
+			PropertyKey key = Key.valueOf(requestParameterName);
 
-			if (!searchableProperties.contains(requestParameterName) &&!NON_SEARCH_FIELDS.contains(requestParameterName)) {
+			if (!searchableProperties.contains(key) &&!NON_SEARCH_FIELDS.contains(requestParameterName)) {
 
 				errorBuffer.add("base", new InvalidSearchField(requestParameterName));
 
@@ -454,15 +458,15 @@ public abstract class Resource {
 		if ((rawType != null) && (request != null) &&!request.getParameterMap().isEmpty()) {
 
 			boolean looseSearch              = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
-			Set<String> searchableProperties = null;
+			Set<PropertyKey> searchableProperties = null;
 
 			if (looseSearch) {
 
-				searchableProperties = EntityContext.getSearchableProperties(rawType, NodeService.NodeIndex.fulltext.name());
+				searchableProperties = EntityContext.getSearchableProperties(rawType, NodeIndex.fulltext);
 
 			} else {
 
-				searchableProperties = EntityContext.getSearchableProperties(rawType, NodeService.NodeIndex.keyword.name());
+				searchableProperties = EntityContext.getSearchableProperties(rawType, NodeIndex.keyword);
 
 			}
 
@@ -470,9 +474,9 @@ public abstract class Resource {
 
 				checkForIllegalSearchKeys(request, searchableProperties);
 
-				for (String key : searchableProperties) {
+				for (PropertyKey key : searchableProperties) {
 
-					String searchValue = request.getParameter(key);
+					String searchValue = request.getParameter(key.name());
 
 					if (searchValue != null) {
 
@@ -535,15 +539,15 @@ public abstract class Resource {
 		if ((rawType != null) && (request != null) &&!request.getParameterMap().isEmpty()) {
 
 			boolean looseSearch              = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
-			Set<String> searchableProperties = null;
+			Set<PropertyKey> searchableProperties = null;
 
 			if (looseSearch) {
 
-				searchableProperties = EntityContext.getSearchableProperties(rawType, NodeService.RelationshipIndex.rel_fulltext.name());
+				searchableProperties = EntityContext.getSearchableProperties(rawType, NodeService.RelationshipIndex.rel_fulltext);
 
 			} else {
 
-				searchableProperties = EntityContext.getSearchableProperties(rawType, NodeService.RelationshipIndex.rel_keyword.name());
+				searchableProperties = EntityContext.getSearchableProperties(rawType, NodeService.RelationshipIndex.rel_keyword);
 
 			}
 
@@ -551,9 +555,9 @@ public abstract class Resource {
 
 				checkForIllegalSearchKeys(request, searchableProperties);
 
-				for (String key : searchableProperties) {
+				for (PropertyKey key : searchableProperties) {
 
-					String searchValue = request.getParameter(key);
+					String searchValue = request.getParameter(key.name());
 
 					if (searchValue != null) {
 

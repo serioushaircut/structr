@@ -60,8 +60,8 @@ public class View extends AbstractNode implements Element {
 		EntityContext.registerPropertySet(View.class, PropertyView.Ui, Key.values());
 		EntityContext.registerEntityRelation(View.class, Page.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(View.class, Element.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerSearchablePropertySet(View.class, NodeIndex.fulltext.name(), Key.values());
-		EntityContext.registerSearchablePropertySet(View.class, NodeIndex.keyword.name(), Key.values());
+		EntityContext.registerSearchablePropertySet(View.class, NodeIndex.fulltext, Key.values());
+		EntityContext.registerSearchablePropertySet(View.class, NodeIndex.keyword, Key.values());
 
 	}
 

@@ -37,20 +37,19 @@ import org.structr.core.entity.AbstractNode;
  */
 public class GraphObjectComparator implements Comparator<GraphObject>, Transformation<List<? extends GraphObject>> {
 
-	public static final String ASCENDING  = "asc";
-	public static final String DESCENDING = "desc";
+	public static enum SortOrder { ASCENDING, DESCENDING };
 	private static final Logger logger    = Logger.getLogger(GraphObjectComparator.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
-	private SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-	private String sortKey;
-	private String sortOrder;
+	//private SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+	private PropertyKey sortKey;
+	private SortOrder sortOrder;
 
 	//~--- constructors ---------------------------------------------------
 
 	// public GraphObjectComparator() {};
-	public GraphObjectComparator(final String sortKey, final String sortOrder) {
+	public GraphObjectComparator(final PropertyKey sortKey, SortOrder sortOrder) {
 
 		this.sortKey   = sortKey;
 		this.sortOrder = sortOrder;
@@ -78,10 +77,10 @@ public class GraphObjectComparator implements Comparator<GraphObject>, Transform
 				try {
 					logger.log(Level.WARNING, "Cannot compare {0} of type {1} to {2} of type {3}, sort key {4} not found.",
 						new Object[] {
-							n1.getStringProperty(AbstractNode.Key.uuid.name()),
-							n1.getStringProperty(AbstractNode.Key.type.name()),
-							n2.getStringProperty(AbstractNode.Key.uuid.name()),
-							n2.getStringProperty(AbstractNode.Key.type.name()),
+							n1.getStringProperty(AbstractNode.Key.uuid),
+							n1.getStringProperty(AbstractNode.Key.type),
+							n2.getStringProperty(AbstractNode.Key.uuid),
+							n2.getStringProperty(AbstractNode.Key.type),
 							sortKey
 						});
 
@@ -92,7 +91,7 @@ public class GraphObjectComparator implements Comparator<GraphObject>, Transform
 				return -1;
 			}
 			
-			if (DESCENDING.equals(sortOrder)) {
+			if (SortOrder.DESCENDING.equals(sortOrder)) {
 
 				return (c2.compareTo(c1));
 
@@ -106,10 +105,10 @@ public class GraphObjectComparator implements Comparator<GraphObject>, Transform
 			
 			logger.log(Level.WARNING, "Cannot compare properties {0} of type {1} to {2} of type {3}, property {4} error.",
 				new Object[] {
-					n1.getStringProperty(AbstractNode.Key.uuid.name()),
-					n1.getStringProperty(AbstractNode.Key.type.name()),
-					n2.getStringProperty(AbstractNode.Key.uuid.name()),
-					n2.getStringProperty(AbstractNode.Key.type.name()),
+					n1.getStringProperty(AbstractNode.Key.uuid),
+					n1.getStringProperty(AbstractNode.Key.type),
+					n2.getStringProperty(AbstractNode.Key.uuid),
+					n2.getStringProperty(AbstractNode.Key.type),
 					sortKey
 				});
 		}

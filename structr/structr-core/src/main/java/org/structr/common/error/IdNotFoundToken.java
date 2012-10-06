@@ -19,6 +19,8 @@
 
 package org.structr.common.error;
 
+import org.structr.core.entity.AbstractRelationship.Key;
+
 /**
  *
  * @author Christian Morgner
@@ -26,6 +28,6 @@ package org.structr.common.error;
 public class IdNotFoundToken extends PropertyNotFoundToken {
 
 	public IdNotFoundToken(Object value) {
-		super("id", value);
+		super(Key.id, value);
 	}
 }
