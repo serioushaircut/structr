@@ -27,7 +27,6 @@ import org.neo4j.cypher.javacompat.ExecutionResult;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.helpers.collection.IteratorUtil;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -42,6 +41,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
+import org.structr.core.Services;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -52,7 +53,9 @@ import java.util.logging.Logger;
 public class CypherQueryCommand extends NodeServiceCommand {
 
 	private static final Logger logger = Logger.getLogger(CypherQueryCommand.class.getName());
-
+	
+	protected static final ThreadLocalExecutionEngine executionEngine = new ThreadLocalExecutionEngine();
+	
 	//~--- methods --------------------------------------------------------
 
 	@Override
@@ -61,7 +64,6 @@ public class CypherQueryCommand extends NodeServiceCommand {
 		RelationshipFactory relFactory  = (RelationshipFactory) arguments.get("relationshipFactory");
 		GraphDatabaseService graphDb    = (GraphDatabaseService) arguments.get("graphDb");
 		NodeFactory nodeFactory         = new NodeFactory(securityContext);
-		ExecutionEngine engine          = new ExecutionEngine(graphDb);
 		String query                    = null;
 		Map<String, Object> params      = null;
 		boolean includeHiddenAndDeleted = true;    // makes more sense as default here
@@ -98,10 +100,10 @@ public class CypherQueryCommand extends NodeServiceCommand {
 
 			if (params != null) {
 
-				result = engine.execute(query, params);
+				result = executionEngine.get().execute(query, params);
 			} else {
 
-				result = engine.execute(query);
+				result = executionEngine.get().execute(query);
 			}
 
 			for (Map<String, Object> row : result) {
@@ -141,4 +143,19 @@ public class CypherQueryCommand extends NodeServiceCommand {
 
 	}
 
+	
+	protected static class ThreadLocalExecutionEngine extends ThreadLocal<ExecutionEngine> {
+		
+		@Override
+		protected ExecutionEngine initialValue() {
+			
+			try {
+		
+				return new ExecutionEngine((GraphDatabaseService)Services.command(SecurityContext.getSuperUserInstance(), GraphDatabaseCommand.class).execute());
+				
+			} catch(Throwable t) {}
+			
+			return null;
+		}
+	}	
 }
