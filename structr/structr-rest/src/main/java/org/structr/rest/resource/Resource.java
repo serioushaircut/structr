@@ -82,6 +82,7 @@ public abstract class Resource {
 		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH);
 		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER);
 		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE);
+		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_OFFSET_ID);
 		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY);
 		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER);
 	}
@@ -105,7 +106,7 @@ public abstract class Resource {
 	 */
 	public abstract boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException;
 
-	public abstract Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException;
+	public abstract Result doGet(String sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException;
 
 	public abstract RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException;
 
@@ -124,7 +125,7 @@ public abstract class Resource {
 
 		// catch 204, DELETE must return 200 if resource is empty
 		try {
-			results = doGet(null, false, -1, -1).getResults();
+			results = doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults();
 		} catch (NoResultsException nre) {
 			results = null;
 		}
@@ -182,7 +183,7 @@ public abstract class Resource {
 
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
 
-		final Iterable<? extends GraphObject> results = doGet(null, false, -1, -1).getResults();
+		final Iterable<? extends GraphObject> results = doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults();
 
 		if (results != null) {
 
@@ -284,19 +285,30 @@ public abstract class Resource {
 		return uriBuilder.toString();
 	}
 
-	protected void applyDefaultSorting(List<? extends GraphObject> list) {
+	protected void applyDefaultSorting(List<? extends GraphObject> list, String sortKey, boolean sortDescending) {
 
 		if (!list.isEmpty()) {
 
-			// Apply default sorting, if defined
-			PropertyKey defaultSort = list.get(0).getDefaultSortKey();
+			String finalSortKey   = sortKey;
+			String finalSortOrder = sortDescending ? "desc" : "asc";
+			
+			if (finalSortKey == null) {
 
-			if (defaultSort != null) {
+				// Apply default sorting, if defined
+				GraphObject obj = list.get(0);
+				
+				PropertyKey defaultSort = obj.getDefaultSortKey();
 
-				String defaultOrder = list.get(0).getDefaultSortOrder();
+				if (defaultSort != null) {
 
-				Collections.sort(list, new GraphObjectComparator(defaultSort.name(), defaultOrder));
+					finalSortKey   = defaultSort.name();
+					finalSortOrder = obj.getDefaultSortOrder();
+				}
+			}
 
+			if (finalSortKey != null) {
+				
+				Collections.sort(list, new GraphObjectComparator(finalSortKey, finalSortOrder));
 			}
 		}
 	}
@@ -430,6 +442,7 @@ public abstract class Resource {
 					&& !name.equals(JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER)
 					&& !name.equals(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY)
 					&& !name.equals(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER)
+					&& !name.equals(JsonRestServlet.REQUEST_PARAMETER_OFFSET_ID)
 					) {
 
 					searchKey.append(request.getParameter(name)).append(" ");

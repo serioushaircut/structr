@@ -202,6 +202,10 @@ public class GraphObjectMap implements GraphObject, Map<String, Object> {
 	public void locationModified(SecurityContext securityContext) {
 	}
 
+	@Override
+	public void propagatedModification(SecurityContext securityContext) {
+	}
+
 	// ----- interface map -----
 	@Override
 	public int size() {
@@ -261,5 +265,10 @@ public class GraphObjectMap implements GraphObject, Map<String, Object> {
 	@Override
 	public Set entrySet() {
 		return values.entrySet();
+	}
+
+	@Override
+	public Object getPropertyForIndexing(String key) {
+		return getProperty(key);
 	}
 }

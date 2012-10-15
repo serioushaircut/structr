@@ -43,7 +43,7 @@ public class EntityResolverResource extends SortableResource {
 	}
 
 	@Override
-	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+	public Result doGet(String sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 		throw new IllegalMethodException();
 	}
 	
@@ -93,4 +93,9 @@ public class EntityResolverResource extends SortableResource {
         public String getResourceSignature() {
                 return getUriPart();
         }
+	
+	@Override
+	public String getUriPart() {
+		return "resolver";
+	}
 }

@@ -60,7 +60,7 @@ public class CypherQueryCommand extends NodeServiceCommand {
 
 		RelationshipFactory relFactory  = (RelationshipFactory) arguments.get("relationshipFactory");
 		GraphDatabaseService graphDb    = (GraphDatabaseService) arguments.get("graphDb");
-		NodeFactory nodeFactory         = (NodeFactory) arguments.get("nodeFactory");
+		NodeFactory nodeFactory         = new NodeFactory(securityContext);
 		ExecutionEngine engine          = new ExecutionEngine(graphDb);
 		String query                    = null;
 		Map<String, Object> params      = null;
@@ -104,13 +104,13 @@ public class CypherQueryCommand extends NodeServiceCommand {
 				result = engine.execute(query);
 			}
 
-			for (String column : result.columns()) {
-
-				for (Object o : IteratorUtil.asIterable(result.columnAs(column))) {
-
+			for (Map<String, Object> row : result) {
+				
+				for (Object o : row.values()) {
+					
 					if (o instanceof Node) {
 
-						AbstractNode node = nodeFactory.createNode(securityContext, (Node) o, includeHiddenAndDeleted, publicOnly);
+						AbstractNode node = nodeFactory.createNode((Node) o, includeHiddenAndDeleted, publicOnly);
 
 						if (node != null) {
 
@@ -131,7 +131,7 @@ public class CypherQueryCommand extends NodeServiceCommand {
 				}
 
 			}
-
+			
 			return resultList;
 
 		} else {

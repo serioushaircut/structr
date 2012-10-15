@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2010-2012 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2012 Axel Morgner
  * 
  *  This file is part of structr <http://structr.org>.
  * 
@@ -16,35 +16,25 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.structr.core;
 
-package org.structr.core.predicate;
-
+import java.util.List;
 import org.structr.common.SecurityContext;
-import org.structr.core.Predicate;
-
+import org.structr.common.error.FrameworkException;
 
 /**
- *
+ * A transformation that can be applied to the result set of a resource.
+ * 
  * @author Christian Morgner
  */
-public class MoreThan<T extends Comparable> implements Predicate<T> {
+public interface ViewTransformation extends Transformation<List<? extends GraphObject>> {
 
-	@Override
-	public boolean evaluate(SecurityContext securityContext, T... objs) {
-		
-		if(objs.length == 0) {
-			return false;
-		}
-		
-		if(objs.length == 1) {
-			return false;
-		}
-		
-		if(objs.length == 2) {
-			
-			return objs[0].compareTo(objs[1]) > 0;
-		}
-		
-		throw new IllegalStateException("Cannot compare more than two objects yet.");
-	}
+	public void apply(SecurityContext securityContext, List<? extends GraphObject> list) throws FrameworkException;
+	
+	/**
+	 * Indicates whether the underlying resource should be evaluated.
+	 * 
+	 * @return whether the underlying resource should be evaluated.
+	 */
+	public boolean evaluateWrappedResource();
 }

@@ -57,6 +57,8 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.DynamicRelationshipType;
+import org.structr.core.node.NodeService.NodeIndex;
+import org.structr.core.node.NodeService.RelationshipIndex;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -64,6 +66,7 @@ import org.neo4j.graphdb.DynamicRelationshipType;
  * A global context for functional mappings between nodes and
  * relationships, property views and property validators.
  *
+ * @author Axel Morgner
  * @author Christian Morgner
  */
 public class EntityContext {
@@ -87,7 +90,7 @@ public class EntityContext {
 	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap                                    = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
 
 	// This map contains view-dependent result set transformations
-	private static final Map<Class, Map<String, Transformation<List<? extends GraphObject>>>> viewTransformations = new LinkedHashMap<Class, Map<String, Transformation<List<? extends GraphObject>>>>();
+	private static final Map<Class, Map<String, ViewTransformation>> viewTransformations = new LinkedHashMap<Class, Map<String, ViewTransformation>>();
 	
 	// This set contains all known properties
 	private static final Set<String> globalKnownPropertyKeys                                                = new LinkedHashSet<String>();
@@ -152,6 +155,9 @@ public class EntityContext {
 		}
 	}
 
+	/**
+	 * Initialize the entity context with all classes from the module service,
+	 */
 	public static void init() {
 
 		try {
@@ -161,28 +167,72 @@ public class EntityContext {
 		}
 	}
 
+	/**
+	 * Register a listener to receive notifications about modified entities.
+	 * 
+	 * @param listener the listener to register
+	 */
 	public static void registerTransactionListener(StructrTransactionListener listener) {
 		transactionListeners.add(listener);
 	}
 
+	/**
+	 * Unregister a transaction listener.
+	 * 
+	 * @param listener the listener to unregister
+	 */
 	public static void unregisterTransactionListener(StructrTransactionListener listener) {
 		transactionListeners.remove(listener);
 	}
 
+	/**
+	 * Register a transformation that will be applied to every newly created entity of a given type.
+	 * 
+	 * @param type the type of the entities for which the transformation should be applied
+	 * @param transformation the transformation to apply on every entity
+	 */
 	public static void registerEntityCreationTransformation(Class type, Transformation<GraphObject> transformation) {
 		getEntityCreationTransformationsForType(type).add(transformation);
 	}
 
+	/**
+	 * Registers a property group for the given key of the given entity type. A property group can be
+	 * used to combine a set of properties into an object. {@see PropertyGroup}
+	 * 
+	 * @param type the type of the entities for which the property group should be registered
+	 * @param key the property key under which the property group should be visible
+	 * @param propertyGroup the property group
+	 */
 	public static void registerPropertyGroup(Class type, PropertyKey key, PropertyGroup propertyGroup) {
 		getPropertyGroupMapForType(type).put(key.name(), propertyGroup);
 	}
 
 	// ----- default values -----
+	/**
+	 * Registers a default value for a given key of a given entity type. The default value will be returned
+	 * instead of null in case the database node does not contain a property with the given key.
+	 * 
+	 * @param type the type of the entities for which the default value should be registered
+	 * @param propertyKey the property key for which the default value should be registered
+	 * @param defaultValue the default value
+	 */
 	public static void registerDefaultValue(Class type, PropertyKey propertyKey, Object defaultValue) {
 		getGlobalDefaultValueMapForType(type).put(propertyKey.name(), defaultValue);
 	}
 
 	// ----- named relations -----
+	/**
+	 * Registers a relationship entity with the given name and type to be instantiated for relationships
+	 * with type <code>relType</code> from <code>sourceType</code> to <code>destType</code>. Relationship
+	 * entity types registered with this method will be instantiated when a database relationship with
+	 * the given parameters are encountered.
+	 * 
+	 * @param relationName the name of the relationship as it should appear in the REST resource
+	 * @param relationshipEntityType the type of the relationship entity
+	 * @param sourceType the type of the source entity
+	 * @param destType the type of the destination entity
+	 * @param relType the relationship type
+	 */
 	public static void registerNamedRelation(String relationName, Class relationshipEntityType, Class sourceType, Class destType, RelationshipType relType) {
 
 		globalRelationshipNameMap.put(relationName, new RelationshipMapping(relationName, sourceType, destType, relType));
@@ -190,15 +240,52 @@ public class EntityContext {
 	}
 
 	// ----- property and entity relationships -----
+	/**
+	 * Defines a non-cascading property relationship with the given property key, relationship type,
+	 * direction and cardinality to exist between the source type and the destination type.
+	 * 
+	 * @param sourceType the source type
+	 * @param propertyKey the property key
+	 * @param destType the destination type
+	 * @param relType the relationship type
+	 * @param direction the direction of the relationship
+	 * @param cardinality the cardinality of the relationship
+	 */
 	public static void registerPropertyRelation(Class sourceType, PropertyKey propertyKey, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality) {
 		registerPropertyRelation(sourceType, propertyKey, destType, relType, direction, cardinality, RelationClass.DELETE_NONE);
 	}
 
+	/**
+	 * Defines a property relationship with the given property key, relationship type, direction,
+	 * cardinality and cascading delete behaviour to exist between the source type and the destination
+	 * type.
+	 * 
+	 * @param sourceType the source type
+	 * @param propertyKey the property key
+	 * @param destType the destination type
+	 * @param relType the relationship type
+	 * @param direction the direction of the relationship
+	 * @param cardinality the cardinality of the relationship
+	 * @param cascadeDelete the cascading delete behaviour
+	 */
 	public static void registerPropertyRelation(Class sourceType, PropertyKey propertyKey, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality,
 		int cascadeDelete) {
 		registerPropertyRelation(sourceType, propertyKey.name(), destType, relType, direction, cardinality, cascadeDelete);
 	}
 
+	/**
+	 * Defines a property relationship with the given property key, relationship type, direction,
+	 * cardinality and cascading delete behaviour to exist between the source type and the destination
+	 * type.
+	 * 
+	 * @param sourceType the source type
+	 * @param propertyKey the property key
+	 * @param destType the destination type
+	 * @param relType the relationship type
+	 * @param direction the direction of the relationship
+	 * @param cardinality the cardinality of the relationship
+	 * @param cascadeDelete the cascading delete behaviour
+	 */
 	public static void registerPropertyRelation(Class sourceType, String property, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, int cascadeDelete) {
 
 		// need to set type here
@@ -208,38 +295,89 @@ public class EntityContext {
 		registerPropertyRelationInternal(sourceType, property, destType, relType, direction, cardinality, objectNotion, cascadeDelete);
 	}
 
-	public static void registerPropertyRelation(Class sourceType, PropertyKey[] propertySet, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality,
-		Notion notion) {
-		registerPropertyRelation(sourceType, propertySet, destType, relType, direction, cardinality, notion, RelationClass.DELETE_NONE);
-	}
-
-	public static void registerPropertyRelation(Class sourceType, PropertyKey[] propertySet, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion,
-		int cascadeDelete) {
-
-		notion.setType(destType);
-		registerPropertyRelationInternal(sourceType, propertySet, destType, relType, direction, cardinality, notion, cascadeDelete);
-	}
-
+	/**
+	 * Defines a non-cascading property relationship with the given property key, relationship
+	 * type, direction and cardinality to exist between the source type and the destination type,
+	 * using the given notion.
+	 * 
+	 * @param sourceType the source type
+	 * @param propertyKey the property key
+	 * @param destType the destination type
+	 * @param relType the relationship type
+	 * @param direction the direction of the relationship
+	 * @param cardinality the cardinality of the relationship
+	 * @param notion the notion 
+	 */
 	public static void registerPropertyRelation(Class sourceType, PropertyKey propertyKey, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
 		registerPropertyRelation(sourceType, propertyKey, destType, relType, direction, cardinality, notion, RelationClass.DELETE_NONE);
 	}
 
+	/**
+	 * Defines a relationship with the given property key, relationship type, direction,
+	 * cardinality and cascading delete behaviour to exist between the source type
+	 * and the destination type, using the given notion.
+	 * 
+	 * @param sourceType the source type
+	 * @param propertyKey the property key
+	 * @param destType the destination type
+	 * @param relType the relationship type
+	 * @param direction the direction of the relationship
+	 * @param cardinality the cardinality of the relationship
+	 * @param notion the notion 
+	 */
 	public static void registerPropertyRelation(Class sourceType, PropertyKey propertyKey, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion,
 		int cascadeDelete) {
 		registerPropertyRelation(sourceType, propertyKey.name(), destType, relType, direction, cardinality, notion, cascadeDelete);
 	}
 
-	public static void registerPropertyRelation(Class sourceType, String property, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion,
+	/**
+	 * Defines a relationship with the given property key, relationship type, direction,
+	 * cardinality and cascading delete behaviour to exist between the source type
+	 * and the destination type, using the given notion.
+	 * 
+	 * @param sourceType
+	 * @param property
+	 * @param destType
+	 * @param relType
+	 * @param direction
+	 * @param cardinality
+	 * @param notion
+	 * @param cascadeDelete 
+	 */
+	private static void registerPropertyRelation(Class sourceType, String property, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion,
 		int cascadeDelete) {
 
 		notion.setType(destType);
 		registerPropertyRelationInternal(sourceType, property, destType, relType, direction, cardinality, notion, cascadeDelete);
 	}
 
+	/**
+	 * Defines a non-cascading relationship of the given relationship type, direction and
+	 * cardinality between entites of type <code>sourceType</code> and entities of type
+	 * <code>destType</code>.
+	 * 
+	 * @param sourceType the type of the source entities
+	 * @param destType the type of the destination entities
+	 * @param relType the relationship type
+	 * @param direction the direction
+	 * @param cardinality the cardinality
+	 */
 	public static void registerEntityRelation(Class sourceType, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality) {
 		registerEntityRelation(sourceType, destType, relType, direction, cardinality, RelationClass.DELETE_NONE);
 	}
 
+	/**
+	 * Defines a relationship of the given relationship type, direction, cardinality and
+	 * cascading delete behaviour between entites of type <code>sourceType</code> and
+	 * entities of type <code>destType</code>.
+	 * 
+	 * @param sourceType the type of the source entities
+	 * @param destType the type of the destination entities
+	 * @param relType the relationship type
+	 * @param direction the direction
+	 * @param cardinality the cardinality
+	 * @param cascadeDelete the cascading delete behaviour
+	 */
 	public static void registerEntityRelation(Class sourceType, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, int cascadeDelete) {
 
 		// need to set type here
@@ -249,10 +387,35 @@ public class EntityContext {
 		registerEntityRelationInternal(sourceType, destType, relType, direction, cardinality, objectNotion, cascadeDelete);
 	}
 
+	/**
+	 * Defines a non-cascading relationship of the given relationship type, direction and
+	 * cardinality between entites of type <code>sourceType</code> and entities of type
+	 * <code>destType</code> using the given notion.
+	 * 
+	 * @param sourceType
+	 * @param destType
+	 * @param relType
+	 * @param direction
+	 * @param cardinality
+	 * @param notion 
+	 */
 	public static void registerEntityRelation(Class sourceType, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
 		registerEntityRelation(sourceType, destType, relType, direction, cardinality, notion, RelationClass.DELETE_NONE);
 	}
 
+	/**
+	 * Defines a relationship of the given relationship type, direction, cardinality and
+	 * cascading delete behaviour between entites of type <code>sourceType</code> and entities
+	 * of type <code>destType</code> using the given notion.
+	 * 
+	 * @param sourceType
+	 * @param destType
+	 * @param relType
+	 * @param direction
+	 * @param cardinality
+	 * @param notion
+	 * @param cascadeDelete 
+	 */
 	public static void registerEntityRelation(Class sourceType, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion, int cascadeDelete) {
 
 		notion.setType(destType);
@@ -260,14 +423,39 @@ public class EntityContext {
 	}
 
 	// ----- property set methods -----
+	/**
+	 * Registers the given set of property keys for the view with name <code>propertyView</code>
+	 * of entities with the given type.
+	 * 
+	 * @param type the type of the entities for which the view will be registered
+	 * @param propertyView the name of the property view for which the property set will be registered
+	 * @param propertySet the set of property keys to register for the given view
+	 */
 	public static void registerPropertySet(Class type, String propertyView, PropertyKey... propertySet) {
 		registerPropertySet(type, propertyView, null, propertySet);
 	}
 
+	/**
+	 * Registers the given set of property keys for the view with name <code>propertyView</code>
+	 * of entities with the given type.
+	 * 
+	 * @param type the type of the entities for which the view will be registered
+	 * @param propertyView the name of the property view for which the property set will be registered
+	 * @param propertySet the set of property keys to register for the given view
+	 */
 	public static void registerPropertySet(Class type, String propertyView, String[] propertySet) {
 		registerPropertySet(type, propertyView, null, propertySet);
 	}
 
+	/**
+	 * Registers the given set of property keys for the view with name <code>propertyView</code>
+	 * and the given prefix of entities with the given type.
+	 * 
+	 * @param type the type of the entities for which the view will be registered
+	 * @param propertyView the name of the property view for which the property set will be registered
+	 * @param viewPrefix a string that will be prepended to all property keys in this view
+	 * @param propertySet the set of property keys to register for the given view
+	 */
 	public static void registerPropertySet(Class type, String propertyView, String viewPrefix, PropertyKey... propertySet) {
 
 		Set<String> properties = getPropertySet(type, propertyView);
@@ -300,6 +488,15 @@ public class EntityContext {
 		}
 	}
 
+	/**
+	 * Registers the given set of property keys for the view with name <code>propertyView</code>
+	 * and the given prefix of entities with the given type.
+	 * 
+	 * @param type the type of the entities for which the view will be registered
+	 * @param propertyView the name of the property view for which the property set will be registered
+	 * @param viewPrefix a string that will be prepended to all property keys in this view
+	 * @param propertySet the set of property keys to register for the given view
+	 */
 	public static void registerPropertySet(Class type, String propertyView, String viewPrefix, String[] propertySet) {
 
 		Set<String> properties = getPropertySet(type, propertyView);
@@ -331,15 +528,25 @@ public class EntityContext {
 		}
 	}
 
-	public static void clearPropertySet(Class type, String propertyView) {
-		getPropertySet(type, propertyView).clear();
-	}
-
 	// ----- validator methods -----
+	/**
+	 * Registers a validator for the given property key of all entities of the given type.
+	 * 
+	 * @param type the type of the entities for which the validator should be registered
+	 * @param propertyKey the property key under which the validator should be registered
+	 * @param validatorClass the type of the validator to register
+	 */
 	public static void registerPropertyValidator(Class type, PropertyKey propertyKey, PropertyValidator validatorClass) {
 		registerPropertyValidator(type, propertyKey.name(), validatorClass);
 	}
 
+	/**
+	 * Registers a validator for the given property key of all entities of the given type.
+	 * 
+	 * @param type the type of the entities for which the validator should be registered
+	 * @param propertyKey the property key under which the validator should be registered
+	 * @param validatorClass the type of the validator to register
+	 */
 	public static void registerPropertyValidator(Class type, String propertyKey, PropertyValidator validator) {
 
 		Map<String, Set<PropertyValidator>> validatorMap = getPropertyValidatorMapForType(type);
@@ -356,21 +563,64 @@ public class EntityContext {
 		}
 
 		validators.add(validator);
+		
+		// Automatically register the property key as searchable key,
+		// so that the uniqueness validators work
+		
+		if (AbstractNode.class.isAssignableFrom(type)) {
+			EntityContext.registerSearchableProperty(type, NodeIndex.keyword.name(), propertyKey);
+		} else if (AbstractRelationship.class.isAssignableFrom(type)) {
+			EntityContext.registerSearchableProperty(type, RelationshipIndex.rel_keyword.name(), propertyKey);
+		}
+		
 	}
 
+
 	// ----- PropertyConverter methods -----
+	/**
+	 * Registers a property converter for the given property key of all entities with
+	 * the given type.
+	 * 
+	 * @param type the type of the entities for which the converter should be registered
+	 * @param propertyKey the property key under which the validator should be registered
+	 * @param propertyConverterClass the type of the converter to register
+	 */
 	public static void registerPropertyConverter(Class type, PropertyKey propertyKey, Class<? extends PropertyConverter> propertyConverterClass) {
 		registerPropertyConverter(type, propertyKey.name(), propertyConverterClass);
 	}
 
+	/**
+	 * Registers a property converter for the given property key of all entities with
+	 * the given type, using the given value.
+	 * 
+	 * @param type the type of the entities for which the converter should be registered
+	 * @param propertyKey the property key under which the validator should be registered
+	 * @param propertyConverterClass the type of the converter to register
+	 */
 	public static void registerPropertyConverter(Class type, PropertyKey propertyKey, Class<? extends PropertyConverter> propertyConverterClass, Value value) {
 		registerPropertyConverter(type, propertyKey.name(), propertyConverterClass, value);
 	}
 
+	/**
+	 * Registers a property converter for the given property key of all entities with
+	 * the given type.
+	 * 
+	 * @param type the type of the entities for which the converter should be registered
+	 * @param propertyKey the property key under which the validator should be registered
+	 * @param propertyConverterClass the type of the converter to register
+	 */
 	public static void registerPropertyConverter(Class type, String propertyKey, Class<? extends PropertyConverter> propertyConverterClass) {
 		registerPropertyConverter(type, propertyKey, propertyConverterClass, null);
 	}
 
+	/**
+	 * Registers a property converter for the given property key of all entities with
+	 * the given type, using the given value.
+	 * 
+	 * @param type the type of the entities for which the converter should be registered
+	 * @param propertyKey the property key under which the validator should be registered
+	 * @param propertyConverterClass the type of the converter to register
+	 */
 	public static void registerPropertyConverter(Class type, String propertyKey, Class<? extends PropertyConverter> propertyConverterClass, Value value) {
 
 		getPropertyConverterMapForType(type).put(propertyKey, propertyConverterClass);
@@ -384,15 +634,35 @@ public class EntityContext {
 	}
 
 	// ----- read-only property map -----
+	/**
+	 * Defines the given property of the given entity to be read-only.
+	 * 
+	 * @param type the type of the entities
+	 * @param key the key that should be set read-only
+	 */
 	public static void registerReadOnlyProperty(Class type, String key) {
 		getReadOnlyPropertySetForType(type).add(key);
 	}
 	
+	/**
+	 * Defines the given property of the given entity to be read-only.
+	 * 
+	 * @param type the entity type
+	 * @param key the key that should be set read-only
+	 */
 	public static void registerReadOnlyProperty(Class type, PropertyKey key) {
 		getReadOnlyPropertySetForType(type).add(key.name());
 	}
 
 	// ----- searchable property map -----
+	/**
+	 * Registers the given set of properties of the given entity type to be stored
+	 * in the given index.
+	 * 
+	 * @param type the entitiy type
+	 * @param index the index
+	 * @param keys the keys to be indexed
+	 */
 	public static void registerSearchablePropertySet(Class type, String index, PropertyKey... keys) {
 
 		for (PropertyKey key : keys) {
@@ -402,6 +672,14 @@ public class EntityContext {
 		}
 	}
 
+	/**
+	 * Registers the given set of properties of the given entity type to be stored
+	 * in the given index.
+	 * 
+	 * @param type the entitiy type
+	 * @param index the index
+	 * @param keys the keys to be indexed
+	 */
 	public static void registerSearchablePropertySet(Class type, String index, String... keys) {
 
 		for (String key : keys) {
@@ -411,14 +689,26 @@ public class EntityContext {
 		}
 	}
 
+	/**
+	 * Registers the given property of the given entity type to be stored
+	 * in the given index.
+	 * 
+	 * @param type the entitiy type
+	 * @param index the index
+	 * @param key the key to be indexed
+	 */
 	public static void registerSearchableProperty(Class type, String index, PropertyKey key) {
 		registerSearchableProperty(type, index, key.name());
 	}
 
-//
-//      public static void registerSearchableProperty(String type, String index, String key) {
-//              registerSearchableProperty(type.getSimpleName(), index, key);
-//      }
+	/**
+	 * Registers the given property of the given entity type to be stored
+	 * in the given index.
+	 * 
+	 * @param type the entitiy type
+	 * @param index the index
+	 * @param key the key to be indexed
+	 */
 	public static void registerSearchableProperty(Class type, String index, String key) {
 
 		Map<String, Set<String>> searchablePropertyMapForType = getSearchablePropertyMapForType(type.getSimpleName());
@@ -436,11 +726,25 @@ public class EntityContext {
 	}
 
 	// ----- write-once property map -----
+	/**
+	 * Defines the given property of the given type to be able to be written only
+	 * once. This is useful for system properties like uuid etc.
+	 * 
+	 * @param type the entity type
+	 * @param key the key to be set to write-once
+	 */
 	public static void registerWriteOnceProperty(Class type, String key) {
 		getWriteOncePropertySetForType(type).add(key);
 	}
 
 	// ----- private methods -----
+	/**
+	 * Tries to normalize (and singularize) the given string so that it resolves to
+	 * an existing entity type.
+	 * 
+	 * @param possibleEntityString
+	 * @return the normalized entity name in its singular form
+	 */
 	public static String normalizeEntityName(String possibleEntityString) {
 
 		if (possibleEntityString == null) {
@@ -527,6 +831,12 @@ public class EntityContext {
 		}
 	}
 	
+	/**
+	 * Converts a Java class name (entity name) into a valid REST resource name.
+	 * 
+	 * @param normalizedEntityName
+	 * @return the given string in lowercase, with camel case occurences replaced by underscores
+	 */
 	public static String denormalizeEntityName(String normalizedEntityName) {
 		
 		StringBuilder buf = new StringBuilder();
@@ -541,20 +851,6 @@ public class EntityContext {
 		}
 		
 		return buf.toString();
-	}
-
-	private static void registerPropertyRelationInternal(Class sourceType, PropertyKey[] properties, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality,
-		Notion notion, int cascadeDelete) {
-
-		Map<String, RelationClass> typeMap = getPropertyRelationshipMapForType(sourceType);
-		RelationClass rel                  = new RelationClass(destType, relType, direction, cardinality, notion, cascadeDelete);
-
-		for (PropertyKey prop : properties) {
-
-			typeMap.put(prop.name(), rel);
-			globalKnownPropertyKeys.add(prop.name());
-
-		}
 	}
 
 	private static void registerPropertyRelationInternal(Class sourceType, String property, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion,
@@ -879,19 +1175,19 @@ public class EntityContext {
 	}
 	
 	// ----- view transformations -----
-	public static void registerViewTransformation(Class type, String view, Transformation<List<? extends GraphObject>> transformation) {
+	public static void registerViewTransformation(Class type, String view, ViewTransformation transformation) {
 		getViewTransformationMapForType(type).put(view, transformation);
 	}
 	
-	public static Transformation<List<? extends GraphObject>> getViewTransformation(Class type, String view) {
+	public static ViewTransformation getViewTransformation(Class type, String view) {
 		return getViewTransformationMapForType(type).get(view);
 	}
 	
-	private static Map<String, Transformation<List<? extends GraphObject>>> getViewTransformationMapForType(Class type) {
+	private static Map<String, ViewTransformation> getViewTransformationMapForType(Class type) {
 		
-		Map<String, Transformation<List<? extends GraphObject>>> viewTransformationMap = viewTransformations.get(type);
+		Map<String, ViewTransformation> viewTransformationMap = viewTransformations.get(type);
 		if(viewTransformationMap == null) {
-			viewTransformationMap = new LinkedHashMap<String, Transformation<List<? extends GraphObject>>>();
+			viewTransformationMap = new LinkedHashMap<String, ViewTransformation>();
 			viewTransformations.put(type, viewTransformationMap);
 		}
 		
@@ -1447,7 +1743,7 @@ public class EntityContext {
 				RelationshipFactory relFactory                              = new RelationshipFactory(securityContext);
 				TransactionChangeSet changeSet                              = new TransactionChangeSet();
 				ErrorBuffer errorBuffer                                     = new ErrorBuffer();
-				NodeFactory nodeFactory                                     = new NodeFactory();
+				NodeFactory nodeFactory                                     = new NodeFactory(securityContext);
 				boolean hasError                                            = false;
 
 				// notify transaction listeners
@@ -1473,7 +1769,7 @@ public class EntityContext {
 
 					if (!data.isDeleted(node)) {
 
-						AbstractNode modifiedNode = nodeFactory.createNode(securityContext, node, true, false);
+						AbstractNode modifiedNode = nodeFactory.createNode(node, true, false);
 						if (modifiedNode != null) {
 
 							changeSet.modify(modifiedNode);
@@ -1522,7 +1818,7 @@ public class EntityContext {
 				// 2: notify listeners of node creation (so the modifications can later be tracked)
 				for (Node node : sortNodes(data.createdNodes())) {
 
-					AbstractNode entity = nodeFactory.createNode(securityContext, node, true, false);
+					AbstractNode entity = nodeFactory.createNode(node, true, false);
 					if (entity != null) {
 						
 						hasError |= !entity.beforeCreation(securityContext, errorBuffer);
@@ -1555,7 +1851,7 @@ public class EntityContext {
 // ****************************************************** TEST
 						
 						try {
-							AbstractNode startNode = nodeFactory.createNode(securityContext, rel.getStartNode());
+							AbstractNode startNode = nodeFactory.createNode(rel.getStartNode());
 							RelationshipType relationshipType = entity.getRelType();
 							
 							if (startNode != null && !data.isDeleted(rel.getStartNode())) {
@@ -1563,7 +1859,7 @@ public class EntityContext {
 								changeSet.modifyRelationshipEndpoint(startNode, relationshipType);
 							}
 							
-							AbstractNode endNode = nodeFactory.createNode(securityContext, rel.getEndNode());
+							AbstractNode endNode = nodeFactory.createNode(rel.getEndNode());
 							if (endNode != null && !data.isDeleted(rel.getEndNode())) {
 								
 								changeSet.modifyRelationshipEndpoint(endNode, relationshipType);
@@ -1591,7 +1887,7 @@ public class EntityContext {
 
 // ****************************************************** TEST
 						try {
-							AbstractNode startNode = nodeFactory.createNode(securityContext, rel.getStartNode());
+							AbstractNode startNode = nodeFactory.createNode(rel.getStartNode());
 							RelationshipType relationshipType = entity.getRelType();
 
 							if (startNode != null && !data.isDeleted(rel.getStartNode())) {
@@ -1599,7 +1895,7 @@ public class EntityContext {
 								changeSet.modifyRelationshipEndpoint(startNode, relationshipType);
 							}
 							
-							AbstractNode endNode = nodeFactory.createNode(securityContext, rel.getEndNode());
+							AbstractNode endNode = nodeFactory.createNode(rel.getEndNode());
 							if (endNode != null && !data.isDeleted(rel.getEndNode())) {
 								
 								changeSet.modifyRelationshipEndpoint(endNode, relationshipType);
@@ -1616,7 +1912,7 @@ public class EntityContext {
 					logger.log(Level.FINEST, "Node deleted: {0}", node.getId());
 
 					String type = (String)removedNodeProperties.get(node).get(AbstractNode.Key.type.name());
-					AbstractNode entity = nodeFactory.createDeletedNode(securityContext, node, type);
+					AbstractNode entity = nodeFactory.createDummyNode(type);
 					
 					if (entity != null) {
 						
@@ -1642,7 +1938,7 @@ public class EntityContext {
 					Node nodeFromPropertyEntry = entry.entity();
 					
 					if (!(nodeFromPropertyEntry.equals(n))) {
-						nodeEntity = nodeFactory.createNode(securityContext, nodeFromPropertyEntry, true, false);
+						nodeEntity = nodeFactory.createNode(nodeFromPropertyEntry, true, false);
 						n = nodeFromPropertyEntry;
 					}
 

@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Transformation;
+import org.structr.core.ViewTransformation;
 import org.structr.core.entity.AbstractNode;
 
 //~--- classes ----------------------------------------------------------------
@@ -35,7 +35,7 @@ import org.structr.core.entity.AbstractNode;
  *
  * @author axel
  */
-public class GraphObjectComparator implements Comparator<GraphObject>, Transformation<List<? extends GraphObject>> {
+public class GraphObjectComparator implements Comparator<GraphObject>, ViewTransformation {
 
 	public static final String ASCENDING  = "asc";
 	public static final String DESCENDING = "desc";
@@ -43,7 +43,6 @@ public class GraphObjectComparator implements Comparator<GraphObject>, Transform
 
 	//~--- fields ---------------------------------------------------------
 
-	private SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 	private String sortKey;
 	private String sortOrder;
 
@@ -92,7 +91,7 @@ public class GraphObjectComparator implements Comparator<GraphObject>, Transform
 				return -1;
 			}
 			
-			if (DESCENDING.equals(sortOrder)) {
+			if (DESCENDING.equalsIgnoreCase(sortOrder)) {
 
 				return (c2.compareTo(c1));
 
@@ -125,5 +124,10 @@ public class GraphObjectComparator implements Comparator<GraphObject>, Transform
 	@Override
 	public int getOrder() {
 		return 998;
+	}
+
+	@Override
+	public boolean evaluateWrappedResource() {
+		return true;
 	}
 }

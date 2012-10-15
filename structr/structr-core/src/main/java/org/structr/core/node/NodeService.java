@@ -30,6 +30,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.graphdb.index.Index;
+import org.neo4j.helpers.collection.MapUtil;
 import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 
@@ -63,17 +64,16 @@ public class NodeService implements SingletonService {
 	//~--- fields ---------------------------------------------------------
 
 	private Index<Node> fulltextIndex               = null;
-	private Index<Node> numericIndex                = null;
 	private GraphDatabaseService graphDb            = null;
 	private Index<Node> keywordIndex                = null;
 	private Index<Node> layerIndex                  = null;
 	private NodeFactory nodeFactory                 = null;
 	private Index<Relationship> relFulltextIndex    = null;
-	private Index<Relationship> relNumericIndex     = null;
 	private Index<Relationship> relKeywordIndex     = null;
 	private Index<Relationship> relUuidIndex        = null;
 	private RelationshipFactory relationshipFactory = null;
 	private Index<Node> userIndex                   = null;
+	private Index<Node> caseInsensitiveUserIndex               = null;
 	private Index<Node> uuidIndex                   = null;
 
 	/** Dependent services */
@@ -82,9 +82,9 @@ public class NodeService implements SingletonService {
 
 	//~--- constant enums -------------------------------------------------
 
-	public static enum NodeIndex { uuid, user, keyword, fulltext, /*numeric,*/ layer }
+	public static enum NodeIndex { uuid, user, caseInsensitiveUser, keyword, fulltext, layer }
 
-	public static enum RelationshipIndex { rel_uuid, rel_keyword, rel_fulltext /*, rel_numeric*/ }
+	public static enum RelationshipIndex { rel_uuid, rel_keyword, rel_fulltext }
 
 	//~--- methods --------------------------------------------------------
 
@@ -97,15 +97,14 @@ public class NodeService implements SingletonService {
 			command.setArgument("graphDb", graphDb);
 			command.setArgument(NodeIndex.uuid.name(), uuidIndex);
 			command.setArgument(NodeIndex.fulltext.name(), fulltextIndex);
-//			command.setArgument(NodeIndex.numeric.name(), numericIndex);
 			command.setArgument(NodeIndex.user.name(), userIndex);
+			command.setArgument(NodeIndex.caseInsensitiveUser.name(), caseInsensitiveUserIndex);
 			command.setArgument(NodeIndex.keyword.name(), keywordIndex);
 			command.setArgument(NodeIndex.layer.name(), layerIndex);
 			command.setArgument(RelationshipIndex.rel_uuid.name(), relUuidIndex);
 			command.setArgument(RelationshipIndex.rel_fulltext.name(), relFulltextIndex);
-//			command.setArgument(RelationshipIndex.rel_numeric.name(), relNumericIndex);
 			command.setArgument(RelationshipIndex.rel_keyword.name(), relKeywordIndex);
-			command.setArgument("nodeFactory", nodeFactory);
+			//command.setArgument("nodeFactory", nodeFactory);
 			command.setArgument("relationshipFactory", relationshipFactory);
 			command.setArgument("filesPath", Services.getFilesPath());
 			command.setArgument("indices", NodeIndex.values());
@@ -176,17 +175,17 @@ public class NodeService implements SingletonService {
 
 		userIndex = graphDb.index().forNodes("nameEmailAllUsers", LuceneIndexImplementation.EXACT_CONFIG);
 
-		logger.log(Level.FINE, "Node UUID index ready.");
-		logger.log(Level.FINE, "Initializing fulltext index...");
+		logger.log(Level.FINE, "Node Email index ready.");
+		logger.log(Level.FINE, "Initializing exact email index...");
+
+		caseInsensitiveUserIndex = graphDb.index().forNodes("caseInsensitiveAllUsers", MapUtil.stringMap( "provider", "lucene", "type", "exact", "to_lower_case", "true" ));
+
+		logger.log(Level.FINE, "Node case insensitive node index ready.");
+		logger.log(Level.FINE, "Initializing case insensitive fulltext node index...");
 
 		fulltextIndex = graphDb.index().forNodes("fulltextAllNodes", LuceneIndexImplementation.FULLTEXT_CONFIG);
 
 		logger.log(Level.FINE, "Fulltext node index ready.");
-//		logger.log(Level.FINE, "Initializing numeric node index...");
-//
-//		numericIndex = graphDb.index().forNodes("numericAllNodes", LuceneIndexImplementation.EXACT_CONFIG);
-//
-//		logger.log(Level.FINE, "Numeric node index ready.");
 		logger.log(Level.FINE, "Initializing keyword node index...");
 
 		keywordIndex = graphDb.index().forNodes("keywordAllNodes", LuceneIndexImplementation.EXACT_CONFIG);
@@ -205,10 +204,10 @@ public class NodeService implements SingletonService {
 		logger.log(Level.FINE, "Layer index ready.");
 		logger.log(Level.FINE, "Initializing node factory...");
 
-		nodeFactory = new NodeFactory();
-
-		logger.log(Level.FINE, "Node factory ready.");
-		logger.log(Level.FINE, "Initializing relationship UUID index...");
+//		nodeFactory = new NodeFactory();
+//
+//		logger.log(Level.FINE, "Node factory ready.");
+//		logger.log(Level.FINE, "Initializing relationship UUID index...");
 
 		relUuidIndex = graphDb.index().forRelationships("uuidAllRelationships", LuceneIndexImplementation.EXACT_CONFIG);
 
@@ -218,11 +217,6 @@ public class NodeService implements SingletonService {
 		relFulltextIndex = graphDb.index().forRelationships("fulltextAllRelationships", LuceneIndexImplementation.FULLTEXT_CONFIG);
 
 		logger.log(Level.FINE, "Relationship fulltext index ready.");
-//		logger.log(Level.FINE, "Initializing numeric relationship index...");
-//
-//		relNumericIndex = graphDb.index().forRelationships("numericAllRelationships", LuceneIndexImplementation.EXACT_CONFIG);
-//
-//		logger.log(Level.FINE, "Relationship numeric index ready.");
 		logger.log(Level.FINE, "Initializing keyword relationship index...");
 
 		relKeywordIndex = graphDb.index().forRelationships("keywordAllRelationships", LuceneIndexImplementation.EXACT_CONFIG);

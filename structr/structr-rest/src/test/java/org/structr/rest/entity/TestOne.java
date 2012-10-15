@@ -32,14 +32,13 @@ import org.structr.core.node.NodeService.NodeIndex;
 /**
  * A simple entity for the most basic tests.
  * 
- * 
  * @author Axel Morgner
  */
 public class TestOne extends AbstractNode {
 	
 	public enum Key implements PropertyKey {
 		
-		anInt, aLong, aDate
+		name, anInt, aLong, aDate
 		
 	}
 	
