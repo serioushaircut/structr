@@ -160,9 +160,15 @@ public class PageHelper {
 
 	public static List<AbstractRelationship> getChildRelationships(final HttpServletRequest request, final AbstractNode node, final String treeAddress, final String componentId) {
 
-		List<AbstractRelationship> rels = new LinkedList<AbstractRelationship>();
+		long t0 = System.nanoTime();
+		
+		List<AbstractRelationship> childRels = new LinkedList<AbstractRelationship>();
+		
+		List<AbstractRelationship> allRels = node.getOutgoingRelationships(RelType.CONTAINS);
 
-		for (AbstractRelationship rel : node.getOutgoingRelationships(RelType.CONTAINS)) {
+		for (AbstractRelationship rel : allRels) {
+			
+			//logger.log(Level.INFO, "Possible child rel: {0}", rel.toString());
 
 			boolean hasTreeAddress = rel.getProperty(treeAddress) != null;
 			String pageId          = PageHelper.getPageIdFromTreeAddress(treeAddress);
@@ -175,12 +181,18 @@ public class PageHelper {
 				Set<String> paths = (Set<String>) node.getProperty(Element.UiKey.paths);
 
 				for (String path : paths) {
+					
+					String pathPageId = PageHelper.getPageIdFromTreeAddress(path);
+					
+					if (pathPageId == null || !pathPageId.equals(pageId)) {
+						continue;
+					}
 
 					try {
 
 						rel.setProperty(path, positionForPageId);
-						rel.removeProperty(pageId);
-						logger.log(Level.INFO, "Set property {0} for path {1} and removed old pageId property {2}", new Object[] { positionForPageId, path, pageId });
+						//rel.removeProperty(pageId);
+						//logger.log(Level.INFO, "Set property {0} for path {1} and removed old pageId property {2}", new Object[] { positionForPageId, path, pageId });
 
 					} catch (FrameworkException ex) {
 
@@ -205,17 +217,17 @@ public class PageHelper {
 					// Add content nodes if they don't have the data-key property set
 					if (endNode instanceof Content && endNode.getStringProperty("data-key") == null) {
 
-						rels.add(rel);
+						childRels.add(rel);
 
 						// Add content or component nodes if rel's componentId attribute matches
 
 					} else if (componentId.equals(rel.getStringProperty(Component.Key.componentId.name()))) {
 
-						rels.add(rel);
+						childRels.add(rel);
 					}
 				} else {
 
-					rels.add(rel);
+					childRels.add(rel);
 				}
 
 			}
@@ -224,10 +236,14 @@ public class PageHelper {
 
 		if (treeAddress != null) {
 
-			sortByPosition(rels, treeAddress);
+			sortByPosition(childRels, treeAddress);
 		}
 
-		return rels;
+		long t1 = System.nanoTime();
+		
+		System.out.println("PageHelper#getChildRelationships took " + (t1-t0)/1000 + " µs (treeAddress " + treeAddress + ", componentId " + componentId + ", node " + node + ")");
+		
+		return childRels;
 
 	}
 
