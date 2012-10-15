@@ -1459,4 +1459,33 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	}
 
+	/**
+	 * Implement standard toString() method
+	 */
+	@Override
+	public String toString() {
+
+		if (dbRelationship == null) {
+
+			return "AbstractRelationship with null database rel";
+		}
+
+		try {
+
+			String type = dbRelationship.getType().name();
+			String combinedType = dbRelationship.hasProperty(HiddenKey.combinedType.name())
+				      ? (String) dbRelationship.getProperty(HiddenKey.combinedType.name())
+				      : "<AbstractRelationship>";
+			String id   = dbRelationship.hasProperty(Key.uuid.name())
+				      ? (String) dbRelationship.getProperty(Key.uuid.name())
+				      : Long.toString(dbRelationship.getId());
+
+			return type + " (" + type + "," + combinedType + "," + id + ")";
+
+		} catch (Throwable ignore) {}
+
+		return "<AbstractRelationship>";
+
+	}
+
 }
