@@ -989,7 +989,7 @@ public class HtmlServlet extends HttpServlet {
 				List<GraphObject> results = ((View) startNode).getGraphObjects(request);
 				
 				double endView     = System.nanoTime();
-				logger.log(Level.INFO, "Get graph objects for {0} in {1} seconds", new Object[] { startNode.getUuid(), decimalFormat.format((endView - startView) / 1000000000.0)});
+				logger.log(Level.INFO, "Get graph objects for View {0} in {1} seconds", new Object[] { startNode.getUuid(), decimalFormat.format((endView - startView) / 1000000000.0)});
 
 				for (GraphObject result : results) {
 
